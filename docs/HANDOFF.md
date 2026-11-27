@@ -63,13 +63,13 @@ Daraus folgt:
 - Radix-Visual-Prototyp: skalierbarer Tierkreis-/Häuserkreis mit Nachtblau-Sternenhintergrund, Goldlinien, Legenden und Zoom-/Verschiebefunktion angelegt.
 - Der Radix-Prototyp zeigt bewusst keine erfundenen Planetenpositionen oder Aspekte. Die echte Chart-Geometrie wird später an die geprüfte Ephemeridenberechnung angeschlossen.
 - Noch keine Ephemeridenberechnung, Lizenzaktivierung oder PDF-Erzeugung.
-- Android-/iOS-Plattformrunner müssen lokal einmalig erzeugt werden:
-  `flutter create . --project-name horoskopium --platforms=android,ios`.
-- Es wurde in diesem Schritt kein Flutter-Build ausgeführt; Buildfähigkeit ist daher noch nicht bestätigt.
+- Android-/iOS-Plattformrunner werden im CI-Workflow bei jedem Lauf reproduzierbar mit `flutter create . --project-name horoskopium --platforms=android,ios` erzeugt; sie müssen dafür noch nicht im Repository eingecheckt sein.
+- GitHub Actions Workflow `.github/workflows/flutter-ci.yml` ergänzt: Android- und macOS/iOS-Jobs führen `flutter analyze`, `flutter test` und einen Build aus. Android Debug-APK wird als Artefakt hochgeladen; iOS wird ohne Codesignierung gebaut.
+- Der Cloud-Workflow ist eingerichtet, aber ein erfolgreicher Lauf steht noch aus. iOS-Installation auf einem echten iPhone benötigt später Apple-Signierung und Verteilung (z. B. TestFlight).
 
 ## 5. Nächste Schritte
 
-1. Flutter-Plattformrunner und CI-Build für Android/iOS einrichten.
+1. CI-Lauf prüfen und eventuelle Analyse-/Buildfehler beheben; danach Android-Testgerät und iPhone-Testverteilung vorbereiten.
 2. Topf Secret Quellcode zur TSL1-Prüfung lesen und Horoskopium-kompatible Dart-Prüfung planen.
 3. Lizenztest mit einem bestehenden, ausdrücklich bereitgestellten Testtoken; keine echten Kundentokens in GitHub einchecken.
 4. Profil-Datenspeicherung später um robuste Migration, Export/Import und angemessenen Schutz erweitern.
