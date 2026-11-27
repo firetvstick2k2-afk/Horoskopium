@@ -92,7 +92,7 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Codekorrekturen: `3fbe837` (RA→Länge), `0249d1a` und `da1095d` (RA→Deklination und Zentralisierung). Regressionstests für Äquator, mittlere nördliche Breite, südliche Hemisphäre und 60° N in Commit `7512083`. **CI-Prüfung dieser letzten Änderungen steht noch aus.**
 - Ältere Placidus-Korrektur-Commits: `4a212a7f3ce6d950b78a84ff986ba06d29b49caf` (Projektion/Polar-Fallback) und `3fd0b2f9806deb24c79f724b283dc6da29c889c5` (numerischer Äquator-Test).
 - CI-Lauf **45946804855** (Commit `9abd9c6`) ist fehlgeschlagen. Analyze war auf Android und iOS erfolgreich; in beiden Jobs bestanden 14 Tests und dieselben zwei Placidus-Tests scheiterten beim Erzeugen von `HouseCalculation`, weil eine numerisch knapp negative RA→Länge-Rundung nach Addition von 360° exakt `360.0` statt `0.0` ergab. Ursache: `Angle.normalize` konnte durch Floating-Point-Rundung den dokumentierten halboffenen Bereich [0, 360) verletzen.
-- Korrektur in Commit `f398976`: Nach dem Wrap wird ein auf `>= 360` gerundeter Wert auf 0 gesetzt. Regressionstest für `Angle.normalize(-1e-14)` in Commit `45dfcb1`. CI nach diesen Korrekturen ist noch ausstehend; Placidus-Fälle aus 50° S und 55° N müssen damit erneut grün werden.
+- Korrektur in Commit `f398976`: Nach dem Wrap wird ein auf `>= 360` gerundeter Wert auf 0 gesetzt. Regressionstest für `Angle.normalize(-1e-14)` in Commit `45dfcb1`. CI-Lauf **45947220605** (HEAD `dc98e57`) ist vollständig erfolgreich: Android Analyze, alle Tests, Debug-APK und Artifact-Upload sowie iOS Analyze, alle Tests und unsigned Build bestanden. Damit sind auch die Placidus-Fälle aus 50° S und 55° N nach der Normalisierungskorrektur bestätigt.
 - Erweiterte unabhängige Referenzprüfung mit Swiss Ephemeris 2.10.03 (swe.houses_armc, System Placidus): zusätzliche ARMC-/Breitenfälle 45°/20° N, 210°/50° S und 300°/55° N. In allen Fällen stimmen alle zwölf Hausspitzen einschließlich der Wrap-around-Werte 0°/360° bis auf numerische Rundung mit dem Referenzsystem überein.
 - Polargrenzprüfung: Bei ε = 23.44° ist die Grenze 90° − ε = 66.56°. Der Fall 66.559° N (ARMC 45°) liefert noch gültige Placidus-Häuser und stimmt für alle zwölf Spitzen mit Swiss Ephemeris überein. Genau bei 66.56° greift der explizite Whole-Sign-Fallback.
 - Diese zusätzlichen Regressionstests wurden in Commit `51e86a9` ergänzt. Der zugehörige CI-Lauf ist nach dem Push noch zu prüfen.
@@ -108,8 +108,7 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. CI-Lauf nach den Rundungs-Korrekturen `f398976` und `45dfcb1` vollständig prüfen. Sicherstellen, dass Analyze, alle Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
-2. Placidus-Referenzprüfung weiter verbreitern: zusätzliche ARMC-Werte, beide Hemisphären, mehrere Jahreszeiten-/Obliquitätswerte und geometrische Reihenfolge/Abstände der Häuser prüfen.
+1. Placidus-Referenzprüfung weiter verbreitern: zusätzliche ARMC-Werte, beide Hemisphären, mehrere Jahreszeiten-/Obliquitätswerte und geometrische Reihenfolge/Abstände der Häuser prüfen.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
 5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
