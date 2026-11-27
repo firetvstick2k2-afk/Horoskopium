@@ -98,8 +98,10 @@ void main() {
       server!.listen((request) async {
         request.response.statusCode = HttpStatus.ok;
         request.response.contentLength = expectedBytes.length + 20;
-        request.response.add(expectedBytes.take(5).toList());
-        await request.response.close();
+        final socket = request.response.detachSocket();
+        socket.add(expectedBytes.take(5).toList());
+        await socket.flush();
+        socket.destroy();
       });
       final kernel = EphemerisKernel(
         id: 'interrupted',
