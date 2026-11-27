@@ -60,6 +60,8 @@ Daraus folgt:
 - Geburtsprofile: Erstellen, Anzeigen und Löschen mit lokaler Speicherung via SharedPreferences implementiert.
 - Erfasste Felder: Name, Geburtsdatum, optionale Geburtszeit (HH:MM) und optionaler Geburtsort.
 - Die Profilangaben liegen lokal in App-Präferenzen; eine verschlüsselte Datenbank-/Backup-Lösung ist noch nicht umgesetzt.
+- Radix-Visual-Prototyp: skalierbarer Tierkreis-/Häuserkreis mit Nachtblau-Sternenhintergrund, Goldlinien, Legenden und Zoom-/Verschiebefunktion angelegt.
+- Der Radix-Prototyp zeigt bewusst keine erfundenen Planetenpositionen oder Aspekte. Die echte Chart-Geometrie wird später an die geprüfte Ephemeridenberechnung angeschlossen.
 - Noch keine Ephemeridenberechnung, Lizenzaktivierung oder PDF-Erzeugung.
 - Android-/iOS-Plattformrunner müssen lokal einmalig erzeugt werden:
   `flutter create . --project-name horoskopium --platforms=android,ios`.
@@ -72,7 +74,7 @@ Daraus folgt:
 3. Lizenztest mit einem bestehenden, ausdrücklich bereitgestellten Testtoken; keine echten Kundentokens in GitHub einchecken.
 4. Profil-Datenspeicherung später um robuste Migration, Export/Import und angemessenen Schutz erweitern.
 5. Ephemeriden-Engine und deren Lizenzbedingungen prüfen (Swiss Ephemeris: AGPL bzw. kommerzielle Lizenz beachten).
-6. Radix-Berechnung, Häuser, Aspekte und Chart-Wheel.
+6. Radix-Berechnung, Häuser, Aspekte und Chart-Wheel; den visuellen Prototyp datengetrieben vervollständigen.
 7. Deutungsinhalte und PDF-Berichte.
 
 ## 6. Fachlicher Hinweis
