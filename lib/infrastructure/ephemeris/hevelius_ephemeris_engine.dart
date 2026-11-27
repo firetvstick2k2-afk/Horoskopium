@@ -1,4 +1,5 @@
 import 'package:hevelius_ephemeris/hevelius_ephemeris.dart';
+import 'package:hevelius_ephemeris/spk_io.dart';
 
 import '../../../application/ports/ephemeris_engine.dart';
 import '../../../domain/astrology/chart_calculation_input.dart';
@@ -7,14 +8,21 @@ import '../../../domain/astrology/celestial_position.dart';
 
 /// Hevelius-backed implementation of the application's ephemeris port.
 ///
-/// The caller owns loading and lifecycle of the JPL SPK data. On mobile,
-/// copy the selected .bsp file to an application-readable local file first,
-/// then create a [SpkEphemeris] and pass it here.
+/// The caller owns the JPL SPK data file. On mobile, copy the selected .bsp
+/// file to an application-readable local file first. Use [fromSpkFilePath]
+/// to open it on demand without loading the complete file into memory.
 ///
 /// House cusps are deliberately not returned: the open Hevelius package
 /// currently exposes ASC/MC but not a complete house-system calculation.
 class HeveliusEphemerisEngine implements EphemerisEngine {
   HeveliusEphemerisEngine(this._ephemeris);
+
+  /// Opens a local JPL SPK file and creates an engine backed by that file.
+  factory HeveliusEphemerisEngine.fromSpkFilePath(String path) {
+    return HeveliusEphemerisEngine(
+      SpkEphemeris([openSpkFile(path)]),
+    );
+  }
 
   final Ephemeris _ephemeris;
 
