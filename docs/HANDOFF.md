@@ -3,8 +3,9 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter verifizierter Projekt-Commit:** b2fa38410f64f60198b4bb34209e5128dfb90e42  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. Der CI-Analyzer läuft nach Anpassung auf --no-fatal-infos durch. CI-Lauf 45943723699 scheiterte danach in beiden Plattformjobs am Widget-Test: RadixPreview lief in der 96-px-Thumbnailansicht um 25 px über. Korrektur in b2fa384: Text-/Icon-Mittelbeschriftung wird nur noch ab 150 px angezeigt; der kleine Radix-Kreis bleibt als reine Grafik. Neuer CI-Lauf nach dieser Korrektur ist abzuwarten. JPL-Datendatei und unabhängige Haus-Referenzfreigabe weiterhin offen.
+**Letzter Code-Commit:** 3fbe837155eb0c25e5c2d1f996a143f9590aad48  
+**Letzter Test-Commit:** 24191d4888747cab8c02a21bf7e350322b18ddc8  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45944214217 ist vollständig erfolgreich: Android-Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS-Analyze, Tests und unsigned Build bestanden. Bei der anschließenden unabhängigen Prüfung der Placidus-Koordinatentransformation wurde ein Richtungsfehler entdeckt und korrigiert: RA→ekliptikale Länge muss die inverse Koordinatentransformation verwenden. Code- und Referenztestkorrektur sind committed; deren CI-Prüfung steht noch aus. JPL-Datendatei und vollständige unabhängige Haus-Referenzfreigabe weiterhin offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -64,7 +65,7 @@
 Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzliche Abhängigkeit:
 - **Placidus** ist Standard. Vier Zwischenhäuserspitzen werden iterativ anhand der Teilung der tag-/nachtseitigen Halbkreisbögen in Rektaszension bestimmt.
 - **Whole Sign** ist Alternative; Haus 1 beginnt am Zeichenanfang des Aszendentenzeichens.
-- ASC/DSC, MC/IC und gegenüberliegende Spitzen werden als Achsen behandelt; Koordinatentransformation berücksichtigt die Ekliptikschiefe.
+- ASC/DSC, MC/IC und gegenüberliegende Spitzen werden als Achsen behandelt; Koordinatentransformation berücksichtigt die Ekliptikschiefe. Die Umrechnung der Zwischenhaus-Rektaszensionen in ekliptikale Länge verwendet nun die inverse Beziehung `lambda = atan2(sin(RA), cos(RA) * cos(epsilon))`.
 - Bei mathematischer Polarkreisgrenze oder nicht lösbarer/circumpolarer Zwischenhausspitze wird transparent auf Whole Sign zurückgefallen.
 - Ergebnis speichert gewünschtes und effektives System plus `usedPolarHouseFallback`.
 - Unbekannte Häusersysteme werden abgewiesen.
@@ -83,7 +84,11 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Nach den Codekorrekturen liefen `45943315071` (Commit `232cae8`) und `45943318974` (Commit `f56ddc7`); beide wurden durch neuere Pushes abgebrochen. Lauf `45943344345` (Commit `7d1e016`) wurde abgeschlossen mit Failure: beide Plattformen scheiterten erneut bei `flutter analyze`; die sieben Meldungen waren ausschließlich Info-Diagnosen (vier deprecated_member_use für `package:flutter/material.dart`, drei prefer_const_constructors). Keine Errors oder Warnings wurden ausgegeben. Tests und Plattform-Builds wurden daher übersprungen.
 - Verifizierte Ursache: Das aktuelle Flutter-Stable-`flutter analyze` behandelt Info-Level-Diagnosen standardmäßig als fatal. CI-Datei `.github/workflows/flutter-ci.yml` wurde in Commit `ad28a75bbba4ac3fc5aaf053608d90249c8844ee` geändert: beide Analyze-Schritte verwenden nun `flutter analyze --no-fatal-infos`. Fehler und Warnings bleiben fatal; Info-Hinweise bleiben sichtbar, blockieren aber nicht den Build.
 - Lauf **45943723699** (Commit `040b336`) bestätigt: Android- und iOS-Analyze erfolgreich. Beide Jobs scheiterten im Schritt `flutter test` am selben Widget-Fehler: `A RenderFlex overflowed by 25 pixels on the bottom`, verursacht durch die Text-/Icon-Column in `RadixPreview` bei Constraints von 96 × 96 px (`lib/widgets/radix_preview.dart:20`). Sieben andere Tests bestanden, darunter vier Angle-/HouseCalculator-Tests. Android-APK und iOS-Build wurden wegen des Testfehlers übersprungen.
-- Korrektur in Commit `b2fa38410f64f60198b4bb34209e5128dfb90e42`: Die Beschriftungs-Column in `RadixPreview` wird nur bei `size >= 150` gerendert. Bei der 96-px-Kachel auf dem Startbildschirm bleibt die Radix-Grafik ohne zu kleine Mittelbeschriftung erhalten. **Diese Korrektur ist noch nicht durch einen neuen CI-Lauf bestätigt.**
+- Korrektur in Commit `b2fa38410f64f60198b4bb34209e5128dfb90e42`: Die Beschriftungs-Column in `RadixPreview` wird nur bei `size >= 150` gerendert. Bei der 96-px-Kachel auf dem Startbildschirm bleibt die Radix-Grafik ohne zu kleine Mittelbeschriftung erhalten.
+- CI-Lauf **45944214217** (HEAD `c41f875` mit obiger RadixPreview-Korrektur) vollständig erfolgreich: Android Analyze, Tests, Debug-APK und Upload erfolgreich; iOS Analyze, Tests und unsigned Build erfolgreich.
+- Unabhängige mathematische Prüfung fand danach einen Richtungsfehler in `_rightAscensionToLongitude`: Die bisherige Formel `atan2(sin(RA) * cos(epsilon), cos(RA))` bildet ekliptikale Länge fälschlich in die andere Richtung ab. Korrekt ist die inverse Transformation `atan2(sin(RA), cos(RA) * cos(epsilon))`, abgeleitet aus `RA = atan2(sin(lambda) * cos(epsilon), cos(lambda))`. Bei ARMC 0°, Breite 0° und epsilon 23.4391667° ergeben die vier Zwischenhausspitzen nun 32.1812°, 62.0894°, 117.9106° und 147.8188° statt der vorher fälschlich erwarteten 27.9106°, 57.8188°, 122.1812° und 152.0894°.
+- Referenzabgleich: Swiss Ephemeris `swehouse.c` verwendet für die Umrechnung RA→Ekliptik die `Asc1`/`Asc2`-Transformation; Quelle zur mathematischen Gegenprüfung: https://github.com/astrotools/SwissEphemeris/blob/master/swisseph/swehouse.c (nicht als Runtime-Abhängigkeit eingebunden).
+- Codekorrektur committed in `3fbe837155eb0c25e5c2d1f996a143f9590aad48`; korrigierte Äquator-Referenztests committed in `24191d4888747cab8c02a21bf7e350322b18ddc8`. **CI-Prüfung dieser letzten Änderungen steht noch aus.**
 - Ältere Placidus-Korrektur-Commits: `4a212a7f3ce6d950b78a84ff986ba06d29b49caf` (Projektion/Polar-Fallback) und `3fd0b2f9806deb24c79f724b283dc6da29c889c5` (numerischer Äquator-Test).
 - **Placidus ist ausdrücklich NICHT fachlich freigegeben:** unabhängige vollständige Referenzvektoren (z. B. Swiss-Ephemeris-`swe_houses_armc`) und reale Radix-Stichproben fehlen. Swiss Ephemeris ist nur Vergleichsreferenz, keine Runtime-Abhängigkeit.
 - Vor Freigabe mehrere Breitengrade (Äquator, mittlere und hohe Breiten, beide Hemisphären), mehrere ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge, Gegenüberliegende und Polargrenzfälle unabhängig vergleichen.
@@ -97,8 +102,8 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. Neuen CI-Lauf nach Commit `b2fa384` vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind; Fehlerursachen anhand der Logs beheben.
-2. Placidus gegen unabhängige Referenzwerte und mehrere Breitengrade/ARMC-Werte validieren; Abweichungen dokumentieren.
+1. Neuen CI-Lauf nach den RA→Ekliptik-Korrekturen (`3fbe837`/`24191d4`) vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
+2. Placidus gegen unabhängige Referenzwerte und mehrere Breitengrade/ARMC-Werte validieren; insbesondere Iterationsformel, nördliche/südliche Hemisphäre und alle zwölf Spitzen vergleichen.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
 5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
