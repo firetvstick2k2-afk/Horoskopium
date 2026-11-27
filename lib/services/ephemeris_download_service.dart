@@ -56,13 +56,31 @@ class EphemerisDownloadService {
 
   Future<String?> installedPath(EphemerisKernel kernel) async {
     final file = await _fileFor(kernel);
-    if (!await file.exists()) return null;
-    final actual = await _sha256(file);
-    if (actual != kernel.sha256) {
-      await file.delete();
-      return null;
+    final backup = File('${file.path}.bak');
+
+    // Recover an interrupted replacement before checking the active file.
+    if (!await file.exists() && await backup.exists()) {
+      await backup.rename(file.path);
     }
-    return file.path;
+    if (!await file.exists()) return null;
+
+    final actual = await _sha256(file);
+    if (actual == kernel.sha256) {
+      if (await backup.exists()) await backup.delete();
+      return file.path;
+    }
+
+    // If the new file was damaged during an interrupted replacement, retain
+    // the previous verified copy whenever it is still available.
+    if (await backup.exists() && await _sha256(backup) == kernel.sha256) {
+      await file.delete();
+      await backup.rename(file.path);
+      return file.path;
+    }
+
+    await file.delete();
+    if (await backup.exists()) await backup.delete();
+    return null;
   }
 
   Future<String> download(
@@ -102,8 +120,20 @@ class EphemerisDownloadService {
           'Die SHA-256-Prüfung ist fehlgeschlagen. Die Datei wurde verworfen.',
         );
       }
-      if (await target.exists()) await target.delete();
-      await temporary.rename(target.path);
+      // Validate/recover any previous version before starting the swap.
+      await installedPath(kernel);
+      final backup = File('${target.path}.bak');
+      if (await target.exists()) await target.rename(backup.path);
+      try {
+        await temporary.rename(target.path);
+      } catch (_) {
+        // Restore the previous file if promotion of the verified download fails.
+        if (!await target.exists() && await backup.exists()) {
+          await backup.rename(target.path);
+        }
+        rethrow;
+      }
+      if (await backup.exists()) await backup.delete();
       return target.path;
     } catch (_) {
       if (await temporary.exists()) await temporary.delete();
