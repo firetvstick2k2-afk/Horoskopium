@@ -21,7 +21,7 @@ void main() {
       expect(result.usedPolarFallback, isFalse);
     });
 
-    test('Placidus matches equatorial semi-arc reference geometry', () {
+    test('Placidus converts equatorial right ascensions to ecliptic longitude', () {
       final result = HouseCalculator.calculate(
         system: 'Placidus',
         ascendantDegrees: 90,
@@ -31,13 +31,16 @@ void main() {
         obliquityDegrees: 23.4391667,
       );
 
+      // At the equator the semi-arc correction is zero, so the four
+      // intermediate cusp right ascensions are exactly 30°, 60°, 120°,
+      // and 150°. Convert those equatorial coordinates back to the ecliptic.
       expect(result.cusps, hasLength(12));
       expect(result.cusps[0], 90);
       expect(result.cusps[9], 0);
-      expect(result.cusps[10], closeTo(27.9106, 0.001));
-      expect(result.cusps[11], closeTo(57.8188, 0.001));
-      expect(result.cusps[1], closeTo(122.1812, 0.001));
-      expect(result.cusps[2], closeTo(152.0894, 0.001));
+      expect(result.cusps[10], closeTo(32.1812, 0.001));
+      expect(result.cusps[11], closeTo(62.0894, 0.001));
+      expect(result.cusps[1], closeTo(117.9106, 0.001));
+      expect(result.cusps[2], closeTo(147.8188, 0.001));
       expect(result.cusps[3], 180);
       expect(result.cusps[6], 270);
       expect(result.cusps[4], closeTo((result.cusps[10] + 180) % 360, 1e-9));
