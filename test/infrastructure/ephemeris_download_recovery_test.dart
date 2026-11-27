@@ -11,6 +11,8 @@ void main() {
     late Directory kernelDirectory;
     late EphemerisDownloadService service;
     late EphemerisKernel kernel;
+    late File target;
+    late File backup;
 
     final verifiedBytes = utf8.encode('verified-kernel-fixture');
     late String checksum;
@@ -30,6 +32,8 @@ void main() {
         url: 'https://example.invalid/fixture.bsp',
         sha256: checksum,
       );
+      target = File('${kernelDirectory.path}/${kernel.fileName}');
+      backup = File('${target.path}.bak');
       service = EphemerisDownloadService(
         supportDirectoryProvider: () async => temporaryDirectory,
       );
@@ -40,9 +44,6 @@ void main() {
         await temporaryDirectory.delete(recursive: true);
       }
     });
-
-    File get target => File('${kernelDirectory.path}/${kernel.fileName}');
-    File get backup => File('${target.path}.bak');
 
     test('restores a verified backup when target is missing', () async {
       await backup.writeAsBytes(verifiedBytes);
