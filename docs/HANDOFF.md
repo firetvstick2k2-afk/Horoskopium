@@ -163,3 +163,11 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 ## 6. Fachlicher Hinweis
 
 Astrologische Deutungen sind symbolische/traditionelle Interpretationen und keine wissenschaftlich validierten Vorhersagen.
+
+
+### Runtime-Race-Absicherung (27.11.2026)
+
+- Nach dem vollständig grünen CI-Lauf #95 (`46070186954`, Commit `b34fc9a5`) wurde ein zusätzlicher Lifecycle-Randfall identifiziert: `restore()` konnte nach einer bereits erfolgten Aktivierung versuchen, die gespeicherte Kerneldatei ein zweites Mal zu öffnen.
+- `EphemerisRuntime` verwendet jetzt eine bereits aktive Engine direkt und wartet bei einem parallel laufenden Aktivierungsvorgang auf genau dieselbe Future. Dadurch gewinnt immer die bereits geöffnete Engine; es wird keine zweite SPK-Instanz erzeugt.
+- Zwei Regressionstests ergänzen die sieben bisherigen Runtime-Tests: Restore nach Aktivierung und Restore während einer laufenden Aktivierung. CI für diesen Folgecommit steht noch aus.
+- Nächster Schritt nach grüner CI: Runtime am App-Root als einzige Instanz bereitstellen und anschließend die Einstellungsseite auf Runtime-gesteuerte Aktivierung/Löschsperre umstellen. Keine Radix-Berechnung ohne erfolgreich aktivierte und validierte Ephemeride.
