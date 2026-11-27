@@ -2,11 +2,6 @@ import 'dart:math' as math;
 
 import 'angle.dart';
 
-/// Supported astrological house systems.
-///
-/// Placidus is the default western quadrant system. Whole Sign is provided as
-/// a robust alternative and as the explicit fallback where Placidus is
-/// mathematically undefined.
 enum HouseSystem {
   placidus,
   wholeSign;
@@ -27,7 +22,6 @@ enum HouseSystem {
       this == HouseSystem.placidus ? 'Placidus' : 'Whole Sign';
 }
 
-/// Result of a house-cusp calculation. Cusps are ordered houses 1 through 12.
 class HouseCalculation {
   HouseCalculation({
     required List<double> cusps,
@@ -47,9 +41,10 @@ class HouseCalculation {
   final bool usedPolarFallback;
 }
 
-/// Pure-Dart house geometry. Inputs are apparent ecliptic-of-date angles and
-/// true obliquity, all in degrees. Geographic longitude is represented by
-/// ARMC (local apparent sidereal time), not by longitude directly.
+/// Pure-Dart Placidus and Whole Sign house geometry.
+///
+/// Placidus uses the iterative semi-arc method in right ascension. ARMC is
+/// local apparent sidereal time. All angles and obliquity are in degrees.
 class HouseCalculator {
   const HouseCalculator._();
 
@@ -57,11 +52,6 @@ class HouseCalculator {
   static const int _maxIterations = 100;
   static const double _convergenceRadians = 1e-12;
 
-  /// Calculates all twelve house cusps.
-  ///
-  /// Placidus is undefined when |latitude| >= 90° - obliquity. In that
-  /// situation the calculation explicitly falls back to Whole Sign and
-  /// records the fallback; it never returns fabricated Placidus cusps.
   static HouseCalculation calculate({
     required String system,
     required double ascendantDegrees,
@@ -83,34 +73,53 @@ class HouseCalculator {
       throw ArgumentError.value(obliquityDegrees, 'obliquityDegrees');
     }
 
-    final polarLimit = 90 - obliquityDegrees;
-    final polar = latitudeDegrees.abs() >=
-        polarLimit - _polarLimitToleranceDegrees;
-    final effective = requested == HouseSystem.placidus && polar
-        ? HouseSystem.wholeSign
-        : requested;
+    var effective = requested;
+    var usedPolarFallback = false;
+    List<double> cusps;
 
-    final cusps = effective == HouseSystem.wholeSign
-        ? _wholeSign(ascendantDegrees)
-        : _placidus(
+    if (requested == HouseSystem.wholeSign) {
+      cusps = _wholeSign(ascendantDegrees);
+    } else {
+      final polarLimit = 90 - obliquityDegrees;
+      final insidePolarCircle = latitudeDegrees.abs() >=
+          polarLimit - _polarLimitToleranceDegrees;
+      if (insidePolarCircle) {
+        effective = HouseSystem.wholeSign;
+        usedPolarFallback = true;
+        cusps = _wholeSign(ascendantDegrees);
+      } else {
+        try {
+          cusps = _placidus(
             ascendantDegrees: ascendantDegrees,
             midheavenDegrees: midheavenDegrees,
             armcDegrees: armcDegrees,
             latitudeDegrees: latitudeDegrees,
             obliquityDegrees: obliquityDegrees,
           );
+        } on StateError {
+          // Some individual cusps can become circumpolar before the simple
+          // latitude threshold is reached. Do not return partial/fake cusps.
+          effective = HouseSystem.wholeSign;
+          usedPolarFallback = true;
+          cusps = _wholeSign(ascendantDegrees);
+        }
+      }
+    }
 
     return HouseCalculation(
       cusps: cusps,
       requestedSystem: requested,
       effectiveSystem: effective,
-      usedPolarFallback: requested == HouseSystem.placidus && polar,
+      usedPolarFallback: usedPolarFallback,
     );
   }
 
   static List<double> _wholeSign(double ascendant) {
     final first = (ascendant / 30).floor() * 30.0;
-    return List<double>.generate(12, (index) => Angle.normalize(first + 30 * index));
+    return List<double>.generate(
+      12,
+      (index) => Angle.normalize(first + 30 * index),
+    );
   }
 
   static List<double> _placidus({
@@ -122,11 +131,8 @@ class HouseCalculator {
   }) {
     final phi = _radians(latitudeDegrees);
     final epsilon = _radians(obliquityDegrees);
-    final ramc = _radians(armcDegrees);
+    final ramc = _radians(Angle.normalize(armcDegrees));
 
-    // The four intermediate cusps divide the relevant diurnal/nocturnal
-    // semi-arcs into thirds. The fixed-point equation is:
-    // RA = ARMC + offset + fraction * asin(tan(phi) * tan(declination)).
     final ra11 = _solveCuspRa(ramc, phi, epsilon, 30, 1 / 3);
     final ra12 = _solveCuspRa(ramc, phi, epsilon, 60, 2 / 3);
     final ra2 = _solveCuspRa(ramc, phi, epsilon, 120, 2 / 3);
@@ -169,9 +175,7 @@ class HouseCalculator {
       );
       final tangentProduct = math.tan(latitude) * math.tan(declination);
       if (!tangentProduct.isFinite || tangentProduct.abs() >= 1) {
-        throw StateError(
-          'Placidus cusp is circumpolar at this latitude; no valid cusp exists.',
-        );
+        throw StateError('Placidus cusp is circumpolar.');
       }
       final semiArcCorrection = math.asin(tangentProduct);
       final next = ramc + offset + fraction * semiArcCorrection;
@@ -180,14 +184,14 @@ class HouseCalculator {
       }
       rightAscension = next;
     }
-
     throw StateError('Placidus cusp iteration did not converge.');
   }
 
+  /// Converts equatorial right ascension to ecliptic longitude.
   static double _rightAscensionToLongitude(double rightAscension, double eps) {
     final longitude = math.atan2(
-      math.sin(rightAscension),
-      math.cos(rightAscension) * math.cos(eps),
+      math.sin(rightAscension) * math.cos(eps),
+      math.cos(rightAscension),
     );
     return Angle.normalize(_degrees(longitude));
   }
