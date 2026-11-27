@@ -25,6 +25,18 @@
 - Geplant sind Radix/Geburtshoroskop, Partnerschaft (Synastrie und Composit), Transite, Aspekte, Häuser, Planeten, Elemente, Modalitäten, Mondknoten, Chiron und Lilith.
 - Umfangreiche Textdeutungen und exportierbarer PDF-Bericht.
 
+
+## 2a. Radix-/Chart-Design und Bedienung
+
+Der Nutzer hat das beigefügte Radix-Beispiel als visuelle Orientierung bestätigt (ähnliche Anmutung, keine pixelgenaue Kopie). Ziel ist eine professionelle, gut lesbare und interaktive Horoskop-Grafik:
+- Großer, zentraler Radix-Kreis mit zwölf Tierkreiszeichen und zwölf Häusern.
+- Planetensymbole und ihre exakten Positionen; ergänzende Liste der Positionen neben oder unter dem Kreis, abhängig von der Bildschirmgröße.
+- Farbige Aspektlinien innerhalb des Kreises, visuell klar unterscheidbar und nicht überladen.
+- Dunkler, edler Nachtblau-Hintergrund mit dezenten Sternen und zurückhaltenden goldenen Akzenten; Gesamtstil bleibt klassisch.
+- Chart muss sich vergrößern lassen (Zoom) und auf Touch-Geräten gut bedienbar sein; zusätzlich sinnvolle responsive Darstellung für kleinere Displays.
+- Die Darstellung soll nicht nur dekorativ sein: Nutzer sollen Zeichen, Häuser, Planeten und Aspekte nachvollziehen und selbst ablesen können. Geplant sind verständliche Legenden, Kurz-Erklärungen und antippbare Elemente mit Detailinformationen.
+- Technische Präferenz: Chart möglichst als skalierbare Vektor-/CustomPaint-Darstellung statt als starres Bild umsetzen, damit Zoom und scharfe Darstellung bei verschiedenen Displaygrößen möglich sind.
+
 ## 3. Lizenzentscheidung – besonders wichtig
 
 Der Nutzer hat ausdrücklich entschieden:
