@@ -5,15 +5,13 @@ import '../../../application/ports/ephemeris_engine.dart';
 import '../../../domain/astrology/chart_calculation_input.dart';
 import '../../../domain/astrology/chart_calculation_result.dart';
 import '../../../domain/astrology/celestial_position.dart';
+import '../../../domain/astrology/house_calculator.dart';
 
 /// Hevelius-backed implementation of the application's ephemeris port.
 ///
 /// The caller owns the JPL SPK data file. On mobile, copy the selected .bsp
 /// file to an application-readable local file first. Use [fromSpkFilePath]
 /// to open it on demand without loading the complete file into memory.
-///
-/// House cusps are deliberately not returned: the open Hevelius package
-/// currently exposes ASC/MC but not a complete house-system calculation.
 class HeveliusEphemerisEngine implements EphemerisEngine {
   HeveliusEphemerisEngine(this._ephemeris);
 
@@ -30,7 +28,7 @@ class HeveliusEphemerisEngine implements EphemerisEngine {
   String get engineId => 'hevelius';
 
   @override
-  String get engineVersion => '0.1.2';
+  String get engineVersion => '0.1.2+houses.1';
 
   @override
   Future<ChartCalculationResult> calculate(
@@ -75,6 +73,15 @@ class HeveliusEphemerisEngine implements EphemerisEngine {
       input.latitudeDegrees,
       input.longitudeDegrees,
     );
+    final obliquityRadians = trueObliquity(centuriesSinceJ2000(jdTt));
+    final houseCalculation = HouseCalculator.calculate(
+      system: input.houseSystem,
+      ascendantDegrees: chartAngles.ascendant,
+      midheavenDegrees: chartAngles.midheaven,
+      armcDegrees: chartAngles.armc,
+      latitudeDegrees: input.latitudeDegrees,
+      obliquityDegrees: obliquityRadians * 180 / 3.141592653589793,
+    );
 
     return ChartCalculationResult(
       positions: positions,
@@ -83,6 +90,10 @@ class HeveliusEphemerisEngine implements EphemerisEngine {
       calculatedAtUtc: DateTime.now().toUtc(),
       ascendantLongitudeDegrees: chartAngles.ascendant,
       midheavenLongitudeDegrees: chartAngles.midheaven,
+      houseCuspsDegrees: houseCalculation.cusps,
+      requestedHouseSystem: houseCalculation.requestedSystem.displayName,
+      effectiveHouseSystem: houseCalculation.effectiveSystem.displayName,
+      usedPolarHouseFallback: houseCalculation.usedPolarFallback,
     );
   }
 
