@@ -3,7 +3,7 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Status:** Flutter-Grundgerüst, UI-Prototyp und erste Domain-/Application-Schnittstellen
+**Status:** Flutter-Grundgerüst, UI-Prototyp, erste Domain-/Application-Schnittstellen; Hevelius als Ephemeriden-Engine ausgewählt, Integration noch offen
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -66,18 +66,36 @@ Der Nutzer hat das beigefügte Radix-Beispiel als visuelle Orientierung bestäti
   - lib/application/use_cases/calculate_radix.dart: validiert Eingabe und Ergebnis.
 - Test angelegt: test/domain/astrology/angle_test.dart.
 - **Wichtig:** Diese Bausteine sind Architektur und Validierungsgrundlage, noch keine echte astronomische Berechnung. Es ist weiterhin keine Ephemeriden-Engine integriert.
-- Architekturdetails und Datenfluss stehen in docs/ARCHITECTURE.md.
 - GitHub Actions Workflow .github/workflows/flutter-ci.yml vorhanden: Android- und macOS/iOS-Jobs führen Analyze, Tests und Builds aus; Android Debug-APK wird als Artefakt hochgeladen, iOS wird ohne Codesignierung gebaut. Ein erfolgreicher Lauf muss noch separat verifiziert werden.
+
+## 4a. Engine-Auswahl – Hevelius Ephemeris
+
+Der Nutzer hat die Empfehlung bestätigt: **Hevelius Ephemeris ist die ausgewählte erste Engine**. Ephemera bleibt Rückfalloption.
+
+Geprüfter Paketstand: `hevelius_ephemeris 0.1.2`, Apache-2.0, reines Dart ohne native Bibliotheken; laut Paketmetadaten Android/iOS-kompatibel. Dokumentierte Funktionen umfassen Sonne, Mond, Planeten, Pluto, Chiron, Ceres, Pallas, Juno, Vesta, mittleren/wahren Mondknoten, mittlere/osculierende Lilith, Längengeschwindigkeiten, Aszendent und MC. Das Paket gibt an, Positionen mit JPL Horizons zu vergleichen.
+
+**Noch nicht integriert und vor Integration zu erledigen:**
+- Die Paketversion 0.1.2 verlangt Dart SDK `^3.13.7`; die bisherige Horoskopium-SDK-Angabe `>=3.4.0` muss geprüft und gegebenenfalls bewusst angehoben werden.
+- Die dokumentierte API listet Aszendent und MC, aber keine vollständigen Hausspitzen/Häusersysteme. Hausberechnung separat lösen und validieren.
+- Die 22 mitgelieferten Fixsterne enthalten Hipparcos-Werte unter ESA CC BY-NC 3.0 IGO; kommerzielle Nutzungserlaubnis ist laut NOTICE noch offen. Diese Daten bis zur Klärung nicht in einer kommerziellen App verwenden.
+- JPL-Dateien werden separat heruntergeladen: DE440s ca. 32 MB (1849–2150), DE442 ca. 115 MB (1550–2650). Offline-Verteilung, Speicherbedarf und Datenhinweise klären.
+- Junges 0.1.x-Projekt: Tests, Performance und Vergleichsrechnungen auf Android/iOS vor produktiver Nutzung prüfen.
+- Hevelius-Code und NOTICE-/Lizenzhinweise bei Auslieferung beachten.
+
+Vorgesehener Ort für den Adapter: `lib/infrastructure/ephemeris/`. Kein UI-Code darf die Bibliothek direkt aufrufen. Bestehende `EphemerisEngine`-Schnittstelle als Grenze beibehalten und bei Bedarf gezielt erweitern.
 
 ## 5. Nächste Schritte
 
-1. CI-Lauf prüfen und neue Tests/Analyse ausführen; eventuelle Fehler beheben.
-2. Ephemeriden-Engines technisch und lizenzrechtlich vergleichen (Genauigkeit, Offline-Fähigkeit, Android/iOS, historische Abdeckung).
-3. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie festlegen.
-4. Topf Secret Quellcode zur TSL1-Prüfung lesen und die identische Dart-Prüfung planen.
-5. Profil-Datenspeicherung um robuste Migration, Export/Import und angemessenen Schutz erweitern.
-6. Radix-Berechnung, Häuser, Aspekte und Chart-Wheel datengetrieben vervollständigen.
-7. Deutungsinhalte und PDF-Berichte auf Basis echter Berechnungsergebnisse ergänzen.
+1. Hevelius-API und Datenlizenz/NOTICE vollständig prüfen; insbesondere die verwendete JPL-Datendatei festlegen.
+2. SDK-Baseline (Dart 3.13.7) und Flutter-CI-Kompatibilität prüfen.
+3. Minimalen Hevelius-Adapter-Prototyp in Infrastructure erstellen und mit bekannten Referenzfällen testen.
+4. Häuserspitzen/Häusersysteme separat spezifizieren und verlässlich implementieren.
+5. CI-Lauf prüfen und neue Tests/Analyse ausführen; eventuelle Fehler beheben.
+6. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie festlegen.
+7. Topf Secret Quellcode zur TSL1-Prüfung lesen und die identische Dart-Prüfung planen.
+8. Profil-Datenspeicherung um robuste Migration, Export/Import und angemessenen Schutz erweitern.
+9. Radix-Berechnung, Häuser, Aspekte und Chart-Wheel datengetrieben vervollständigen.
+10. Deutungsinhalte und PDF-Berichte auf Basis echter Berechnungsergebnisse ergänzen.
 
 ## 6. Fachlicher Hinweis
 
