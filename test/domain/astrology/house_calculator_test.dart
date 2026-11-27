@@ -50,6 +50,58 @@ void main() {
       expect(result.usedPolarFallback, isFalse);
     });
 
+
+    test('Placidus matches independent mid-latitude northern reference', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 98.1302524996,
+        midheavenDegrees: 338.3613918334,
+        armcDegrees: 340,
+        latitudeDegrees: 48.4,
+        obliquityDegrees: 23.44,
+      );
+
+      expect(result.cusps[10], closeTo(12.9698064956, 1e-6));
+      expect(result.cusps[11], closeTo(58.1538739006, 1e-6));
+      expect(result.cusps[1], closeTo(115.2138876784, 1e-6));
+      expect(result.cusps[2], closeTo(134.0757419582, 1e-6));
+      expect(result.usedPolarFallback, isFalse);
+    });
+
+    test('Placidus matches independent southern-hemisphere reference', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 257.5351559756,
+        midheavenDegrees: 147.8186022875,
+        armcDegrees: 150,
+        latitudeDegrees: -33.9,
+        obliquityDegrees: 23.44,
+      );
+
+      expect(result.cusps[10], closeTo(180, 1e-6));
+      expect(result.cusps[11], closeTo(219.0726503747, 1e-6));
+      expect(result.cusps[1], closeTo(280.1817895065, 1e-6));
+      expect(result.cusps[2], closeTo(302.3538433669, 1e-6));
+      expect(result.usedPolarFallback, isFalse);
+    });
+
+    test('Placidus matches independent high-latitude reference', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 136.8603499374,
+        midheavenDegrees: 21.6386081666,
+        armcDegrees: 20,
+        latitudeDegrees: 60,
+        obliquityDegrees: 23.44,
+      );
+
+      expect(result.cusps[10], closeTo(66.0592749704, 1e-6));
+      expect(result.cusps[11], closeTo(108.4076699806, 1e-6));
+      expect(result.cusps[1], closeTo(151.1598652036, 1e-6));
+      expect(result.cusps[2], closeTo(171.2907761673, 1e-6));
+      expect(result.usedPolarFallback, isFalse);
+    });
+
     test('Placidus explicitly falls back to Whole Sign inside polar circle', () {
       final result = HouseCalculator.calculate(
         system: 'Placidus',
