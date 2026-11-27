@@ -7,6 +7,7 @@ void main() {
       expect(Angle.normalize(-10), 350);
       expect(Angle.normalize(370), 10);
       expect(Angle.normalize(720), 0);
+      expect(Angle.normalize(-1e-14), 0);
     });
 
     test('calculates the smallest angular separation', () {
