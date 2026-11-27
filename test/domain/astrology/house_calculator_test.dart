@@ -21,21 +21,25 @@ void main() {
       expect(result.usedPolarFallback, isFalse);
     });
 
-    test('Placidus anchors angles and creates opposite house cusps', () {
+    test('Placidus matches equatorial semi-arc reference geometry', () {
       final result = HouseCalculator.calculate(
         system: 'Placidus',
         ascendantDegrees: 90,
         midheavenDegrees: 0,
         armcDegrees: 0,
         latitudeDegrees: 0,
-        obliquityDegrees: 23.4392911,
+        obliquityDegrees: 23.4391667,
       );
 
       expect(result.cusps, hasLength(12));
       expect(result.cusps[0], 90);
+      expect(result.cusps[9], 0);
+      expect(result.cusps[10], closeTo(27.9106, 0.001));
+      expect(result.cusps[11], closeTo(57.8188, 0.001));
+      expect(result.cusps[1], closeTo(122.1812, 0.001));
+      expect(result.cusps[2], closeTo(152.0894, 0.001));
       expect(result.cusps[3], 180);
       expect(result.cusps[6], 270);
-      expect(result.cusps[9], 0);
       expect(result.cusps[4], closeTo((result.cusps[10] + 180) % 360, 1e-9));
       expect(result.cusps[5], closeTo((result.cusps[11] + 180) % 360, 1e-9));
       expect(result.cusps[7], closeTo((result.cusps[1] + 180) % 360, 1e-9));
