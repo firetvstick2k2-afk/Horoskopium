@@ -63,7 +63,25 @@ Berechnung und Interpretation strikt trennen. Die aktuelle Implementierung legt 
 
 Es ist noch keine Ephemeriden-Engine integriert. Keine Dummy-Positionen oder erfundenen Aspekte in echte Charts übernehmen.
 
-Vor Auswahl der Engine sind Genauigkeit, Offline-Fähigkeit, Plattformunterstützung, historische Abdeckung und Lizenzbedingungen zu prüfen. Swiss Ephemeris hat unterschiedliche Lizenzmodelle (u. a. AGPL oder kommerzielle Lizenz); Lizenzpflichten vor Veröffentlichung klären.
+### Ausgewählte Engine: Hevelius Ephemeris
+
+Die technische Vorauswahl ist **hevelius_ephemeris 0.1.2** (Apache-2.0) als astronomischer Berechnungskern. Der Adapter wird in `lib/infrastructure/ephemeris/` implementiert und ausschließlich über `EphemerisEngine` angesprochen. Die bestehende Application-/Domain-Schnittstelle bleibt die Grenze zur Bibliothek.
+
+Begründung:
+- Reines Dart ohne native Bibliotheken und ohne Flutter-Abhängigkeit; laut Paketmetadaten für Android und iOS ausgewiesen.
+- Berechnet geozentrische ekliptikale Positionen für Sonne, Mond, Planeten und Pluto sowie Chiron und mehrere Asteroiden.
+- Enthält mittleren/wahren Mondknoten, mittlere/osculierende Lilith und Längengeschwindigkeiten für Rückläufigkeit.
+- Stellt Aszendent und MC bereit.
+- Paketcode steht unter Apache-2.0; Lizenz- und NOTICE-Hinweise müssen in der ausgelieferten App erhalten bleiben.
+
+Wichtige Einschränkungen und offene Prüfungen:
+- Paketversion 0.1.2 verlangt Dart SDK `^3.13.7`; die bisherige App-Deklaration `>=3.4.0` ist damit nicht kompatibel. Vor Einbindung muss die SDK-Baseline bewusst angehoben und in CI bestätigt werden.
+- Die dokumentierte API nennt Aszendent und MC, aber keine vollständigen Häuserspitzen bzw. Häusersysteme. Hausberechnung ist deshalb separat zu implementieren oder durch eine weitere geprüfte, lizenzkompatible Lösung zu ergänzen. Keine Häuser aus unbestätigten Annahmen ableiten.
+- Die mitgelieferten 22 Fixstern-Daten enthalten Hipparcos-Werte mit ESA CC BY-NC 3.0 IGO; eine kommerzielle Nutzungserlaubnis ist laut NOTICE noch offen. Diese Fixstern-Daten dürfen wir bis zur Klärung nicht in einer kommerziellen Horoskopium-Ausgabe verwenden. Die Kernberechnung der Planetenpositionen ist davon getrennt.
+- Die JPL-Ephemeridendateien sind nicht im Paket enthalten. DE440s umfasst etwa 32 MB und den Zeitraum 1849–2150; DE442 etwa 115 MB und 1550–2650. Datenbereitstellung, Speicherbedarf, Offline-Installation und die jeweiligen NOTICE-/Quellenhinweise müssen vor der endgültigen Auswahl des Datenpakets geprüft werden.
+- Das Paket ist jung (0.1.x). Vor produktiver Nutzung sind API, Tests, Performance auf Android/iOS und Vergleichsrechnungen mit unabhängigen Referenzen zu prüfen.
+
+Zunächst wird nur ein isolierter Adapter-Prototyp mit Testfällen erstellt. Die Bibliothek wird nicht direkt aus Widgets oder UI-Code aufgerufen. Version und Datenbestand werden festgehalten, damit Ergebnisse reproduzierbar bleiben. Hevelius bleibt die gewählte erste Option; bei nicht lösbaren Anforderungen bleibt Ephemera die Rückfalloption.
 
 ## Zeitzonen und Orte
 
@@ -87,4 +105,4 @@ Geburtsdatum, Uhrzeit und Ort sind persönliche Daten. Als Ausgangspunkt lokale 
 
 ## Status
 
-Die ersten Domain-/Application-Bausteine sind angelegt: Winkel-Normalisierung, Eingabe-/Ergebnisobjekte, Ephemeriden-Port und Anwendungsfall. Das ist noch keine echte astronomische Berechnung. Datenbank, konkrete Ephemeriden-Engine, Zeitzonen-/Geocoding-Adapter, Lizenzintegration und PDF-Bibliothek bleiben offene Entscheidungen.
+Die ersten Domain-/Application-Bausteine sind angelegt: Winkel-Normalisierung, Eingabe-/Ergebnisobjekte, Ephemeriden-Port und Anwendungsfall. Hevelius ist als erste Engine ausgewählt, aber noch nicht als Abhängigkeit eingebunden. Adapter, Häuserspitzen, Zeitzonen-/Geocoding-Adapter, Lizenzintegration und PDF-Bibliothek bleiben offene Aufgaben.
