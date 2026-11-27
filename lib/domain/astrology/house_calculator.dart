@@ -187,11 +187,13 @@ class HouseCalculator {
     throw StateError('Placidus cusp iteration did not converge.');
   }
 
-  /// Converts equatorial right ascension to ecliptic longitude.
+  /// Inverts the equatorial-to-ecliptic relation for a point on the ecliptic:
+  /// RA = atan2(sin(lambda) * cos(epsilon), cos(lambda)).
+  /// Therefore lambda = atan2(sin(RA), cos(RA) * cos(epsilon)).
   static double _rightAscensionToLongitude(double rightAscension, double eps) {
     final longitude = math.atan2(
-      math.sin(rightAscension) * math.cos(eps),
-      math.cos(rightAscension),
+      math.sin(rightAscension),
+      math.cos(rightAscension) * math.cos(eps),
     );
     return Angle.normalize(_degrees(longitude));
   }
