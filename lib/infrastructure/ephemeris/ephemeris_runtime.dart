@@ -57,7 +57,16 @@ class EphemerisRuntime {
 
   Future<EphemerisEngine?> _restoreSavedKernel() async {
     try {
+      // Activation may have started before the first restore request. Reuse
+      // that in-flight open instead of racing it or opening a second SPK file.
+      final activating = _activationFuture;
+      if (activating != null) return await activating;
+      if (_activeEngine != null) return _activeEngine;
+
       final savedId = await _loadSelection();
+      // Keep this guard after the asynchronous preference read as well: an
+      // already-open engine always wins over a stale persisted selection.
+      if (_activeEngine != null) return _activeEngine;
       if (savedId == null || savedId.isEmpty) return null;
       final matches =
           _kernels.where((kernel) => kernel.id == savedId);
