@@ -74,10 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final downloading = EphemerisKernel.available
+    final matches = EphemerisKernel.available
         .where((kernel) => kernel.id == _downloading)
-        .firstOrNull;
-    final progress = _total > 0 ? (_received / _total).clamp(0.0, 1.0) : null;
+        .toList();
+    final downloading = matches.isEmpty ? null : matches.first;
+    final double? progress = _total > 0
+        ? (_received / _total).clamp(0.0, 1.0).toDouble()
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Einstellungen')),
@@ -99,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           for (final kernel in EphemerisKernel.available)
-            _kernelCard(kernel, downloading, progress),
+            _kernelCard(kernel),
           if (downloading != null) ...[
             const SizedBox(height: 12),
             LinearProgressIndicator(value: progress),
@@ -126,11 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _kernelCard(
-    EphemerisKernel kernel,
-    EphemerisKernel? downloading,
-    double? progress,
-  ) {
+  Widget _kernelCard(EphemerisKernel kernel) {
     final path = _installed[kernel.id];
     final isDownloading = _downloading == kernel.id;
     final isBusy = _downloading != null;
