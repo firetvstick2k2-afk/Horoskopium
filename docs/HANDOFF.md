@@ -3,8 +3,8 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Aktueller HEAD bei Dokumentation:** f56ddc785e878a75c0bc840ddb14a7e6719d040c  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Fehler aus Lauf 45940062310 analysiert und Korrekturen committed; neue CI-Läufe laufen. JPL-Datendatei und unabhängige Haus-Referenzfreigabe weiterhin offen.
+**Aktueller HEAD bei Dokumentation:** ad28a75bbba4ac3fc5aaf053608d90249c8844ee  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Fehler aus Lauf 45940062310 analysiert und Codekorrekturen committed. Lauf 45943344345 schlug erneut bei flutter analyze fehl; Ursache: sieben reine Info-Diagnosen werden durch die aktuelle Flutter-Stable-Version standardmäßig als fatal behandelt. CI-Workflow wurde auf --no-fatal-infos angepasst; neuer Lauf steht noch aus. JPL-Datendatei und unabhängige Haus-Referenzfreigabe weiterhin offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -80,7 +80,8 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Korrekturen auf development:
   - Commit `232cae814c2413ba3f181de2493f7d3502d53702`: Konstruktorparameter von `required this.positions` auf `required List<CelestialPosition> positions` geändert; unveränderliche Kopie wird genau einmal im Initializer angelegt.
   - Commit `f56ddc785e878a75c0bc840ddb14a7e6719d040c`: unbenutzten `material.dart`-Import aus `test/widget_test.dart` entfernt.
-- Nach diesen Commits wurden zwei CI-Läufe ausgelöst: `45943315071` (Commit `232cae8`) und `45943318974` (Commit `f56ddc7`). Beim letzten Statusabruf war der erste in Arbeit und der zweite pending. Ergebnis noch offen.
+- Nach den Codekorrekturen liefen `45943315071` (Commit `232cae8`) und `45943318974` (Commit `f56ddc7`); beide wurden durch neuere Pushes abgebrochen. Lauf `45943344345` (Commit `7d1e016`) wurde abgeschlossen mit Failure: beide Plattformen scheiterten erneut bei `flutter analyze`; die sieben Meldungen waren ausschließlich Info-Diagnosen (vier deprecated_member_use für `package:flutter/material.dart`, drei prefer_const_constructors). Keine Errors oder Warnings wurden ausgegeben. Tests und Plattform-Builds wurden daher übersprungen.
+- Verifizierte Ursache: Das aktuelle Flutter-Stable-`flutter analyze` behandelt Info-Level-Diagnosen standardmäßig als fatal. CI-Datei `.github/workflows/flutter-ci.yml` wurde in Commit `ad28a75bbba4ac3fc5aaf053608d90249c8844ee` geändert: beide Analyze-Schritte verwenden nun `flutter analyze --no-fatal-infos`. Fehler und Warnings bleiben fatal; Info-Hinweise bleiben sichtbar, blockieren aber nicht den Build. Die vorhandenen Flutter-Material-Deprecation-Hinweise und Const-Hinweise bleiben dokumentierte technische Bereinigungspunkte.
 - Ältere Placidus-Korrektur-Commits: `4a212a7f3ce6d950b78a84ff986ba06d29b49caf` (Projektion/Polar-Fallback) und `3fd0b2f9806deb24c79f724b283dc6da29c889c5` (numerischer Äquator-Test).
 - **Placidus ist ausdrücklich NICHT fachlich freigegeben:** unabhängige vollständige Referenzvektoren (z. B. Swiss-Ephemeris-`swe_houses_armc`) und reale Radix-Stichproben fehlen. Swiss Ephemeris ist nur Vergleichsreferenz, keine Runtime-Abhängigkeit.
 - Vor Freigabe mehrere Breitengrade (Äquator, mittlere und hohe Breiten, beide Hemisphären), mehrere ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge, Gegenüberliegende und Polargrenzfälle unabhängig vergleichen.
@@ -94,7 +95,7 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. CI-Läufe `45943315071` und `45943318974` vollständig prüfen; bei Fehlern Logs lesen und Ursache beheben. Nicht allein aufgrund des Analyze-Fixes Erfolg behaupten.
+1. Neuen CI-Lauf nach Commit `ad28a75` vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind; Fehlerursachen anhand der Logs beheben.
 2. Placidus gegen unabhängige Referenzwerte und mehrere Breitengrade/ARMC-Werte validieren; Abweichungen dokumentieren.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
