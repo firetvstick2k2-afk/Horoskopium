@@ -8,7 +8,10 @@ class Angle {
       throw ArgumentError.value(degrees, 'degrees', 'Must be finite.');
     }
     final normalized = degrees % 360;
-    return normalized < 0 ? normalized + 360 : normalized;
+    final wrapped = normalized < 0 ? normalized + 360 : normalized;
+    // Adding 360 to a tiny negative remainder can round to exactly 360.0.
+    // Keep the documented half-open interval [0, 360) even at that boundary.
+    return wrapped >= 360 ? 0 : wrapped;
   }
 
   /// Returns the smallest unsigned angular distance in [0, 180].
