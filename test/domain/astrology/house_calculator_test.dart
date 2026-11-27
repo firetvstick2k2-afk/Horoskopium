@@ -218,6 +218,60 @@ void main() {
       expect(result.cusps[11], 120);
     });
 
+    test('Placidus matches all cusps at a different obliquity in the north', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 169.3072789718,
+        midheavenDegrees: 78.0022624682,
+        armcDegrees: 77,
+        latitudeDegrees: 37,
+        obliquityDegrees: 23,
+      );
+      const expected = <double>[
+        169.3072789718, 195.1922239492, 225.1856128185, 258.0022624682,
+        291.0783727577, 321.9117531840, 349.3072789718, 15.1922239492,
+        45.1856128185, 78.0022624682, 111.0783727577, 141.9117531840,
+      ];
+      _expectCuspsAndPositiveArcs(result.cusps, expected);
+      expect(result.usedPolarFallback, isFalse);
+    });
+
+    test('Placidus matches all cusps in the south with increased obliquity', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 322.8904826486,
+        midheavenDegrees: 224.6975286395,
+        armcDegrees: 222,
+        latitudeDegrees: -42,
+        obliquityDegrees: 24.5,
+      );
+      const expected = <double>[
+        322.8904826486, 344.5040534893, 11.5802217602, 44.6975286395,
+        80.8328832668, 114.2892542218, 142.8904826486, 164.5040534893,
+        191.5802217602, 224.6975286395, 260.8328832668, 294.2892542218,
+      ];
+      _expectCuspsAndPositiveArcs(result.cusps, expected);
+      expect(result.usedPolarFallback, isFalse);
+    });
+
+    test('Placidus matches all cusps with lower obliquity and wrap-around', () {
+      final result = HouseCalculator.calculate(
+        system: 'Placidus',
+        ascendantDegrees: 50.8345328598,
+        midheavenDegrees: 312.8361824961,
+        armcDegrees: 315,
+        latitudeDegrees: 12,
+        obliquityDegrees: 22,
+      );
+      const expected = <double>[
+        50.8345328598, 79.0515853238, 105.4265136756, 132.8361824961,
+        163.4154496422, 197.0770569704, 230.8345328598, 259.0515853238,
+        285.4265136756, 312.8361824961, 343.4154496422, 17.0770569704,
+      ];
+      _expectCuspsAndPositiveArcs(result.cusps, expected);
+      expect(result.usedPolarFallback, isFalse);
+    });
+
     test('rejects unknown systems instead of silently guessing', () {
       expect(
         () => HouseCalculator.calculate(
@@ -232,4 +286,17 @@ void main() {
       );
     });
   });
+}
+void _expectCuspsAndPositiveArcs(List<double> actual, List<double> expected) {
+  expect(actual, hasLength(12));
+  for (var i = 0; i < 12; i++) {
+    expect(actual[i], closeTo(expected[i], 1e-6), reason: 'House ${i + 1}');
+    final next = actual[(i + 1) % 12];
+    final arc = (next - actual[i] + 360) % 360;
+    expect(arc, greaterThan(0), reason: 'Arc after house ${i + 1}');
+  }
+  for (var i = 0; i < 6; i++) {
+    expect(actual[i + 6], closeTo((actual[i] + 180) % 360, 1e-8),
+        reason: 'Opposite house ${i + 1}');
+  }
 }
