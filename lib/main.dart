@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+
+import 'infrastructure/ephemeris/ephemeris_runtime.dart';
+import 'services/ephemeris_download_service.dart';
 import 'screens/profiles_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/radix_screen.dart';
 import 'widgets/radix_preview.dart';
 
-void main() {
-  runApp(const HoroskopiumApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final runtime = EphemerisRuntime(downloads: EphemerisDownloadService());
+  await runtime.restore();
+  runApp(HoroskopiumApp(runtime: runtime));
 }
 
 class HoroskopiumApp extends StatelessWidget {
-  const HoroskopiumApp({super.key});
+  HoroskopiumApp({super.key, EphemerisRuntime? runtime})
+      : runtime = runtime ?? EphemerisRuntime(downloads: EphemerisDownloadService());
+
+  final EphemerisRuntime runtime;
 
   @override
   Widget build(BuildContext context) {
@@ -44,13 +53,15 @@ class HoroskopiumApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
+      home: HomeScreen(runtime: runtime),
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.runtime});
+
+  final EphemerisRuntime runtime;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +79,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Einstellungen',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              MaterialPageRoute(builder: (_) => SettingsScreen(runtime: runtime)),
             ),
             icon: const Icon(Icons.settings_outlined),
           ),
