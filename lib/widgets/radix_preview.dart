@@ -16,30 +16,35 @@ class RadixPreview extends StatelessWidget {
       height: size,
       child: CustomPaint(
         painter: _RadixPainter(),
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.auto_awesome, color: Color(0xFFE5C98F), size: 30),
-              SizedBox(height: 7),
-              Text(
-                'DEIN RADIX',
-                style: TextStyle(
-                  color: Color(0xFFE5C98F),
-                  letterSpacing: 2.4,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
+        // The decorative wheel is also used as a 96 px thumbnail on the home
+        // screen. Keep its center clear at that size instead of squeezing the
+        // full-size title and subtitle into a space they cannot fit.
+        child: size >= 150
+            ? const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.auto_awesome, color: Color(0xFFE5C98F), size: 30),
+                    SizedBox(height: 7),
+                    Text(
+                      'DEIN RADIX',
+                      style: TextStyle(
+                        color: Color(0xFFE5C98F),
+                        letterSpacing: 2.4,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Dein Himmelsbild entsteht hier',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFFB8B0A2), fontSize: 9),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Dein Himmelsbild entsteht hier',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFFB8B0A2), fontSize: 9),
-              ),
-            ],
-          ),
-        ),
+              )
+            : null,
       ),
     );
   }
