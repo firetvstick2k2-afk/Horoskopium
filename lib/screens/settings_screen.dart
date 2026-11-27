@@ -2,17 +2,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../infrastructure/ephemeris/ephemeris_runtime.dart';
 import '../services/ephemeris_download_service.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, required this.runtime});
+
+  final EphemerisRuntime runtime;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _downloads = EphemerisDownloadService();
   final Map<String, String?> _installed = {};
   String? _downloading;
   int _received = 0;
@@ -27,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _refresh() async {
     for (final kernel in EphemerisKernel.available) {
-      final path = await _downloads.installedPath(kernel);
+      final path = await widget.runtime.installedPathFor(kernel);
       if (!mounted) return;
       setState(() => _installed[kernel.id] = path);
     }
@@ -41,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _error = null;
     });
     try {
-      final path = await _downloads.download(
+      final path = await widget.runtime.downloadKernel(
         kernel,
         onProgress: (received, total) {
           if (!mounted) return;
@@ -62,9 +64,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _delete(EphemerisKernel kernel) async {
-    await _downloads.delete(kernel);
-    if (!mounted) return;
-    setState(() => _installed[kernel.id] = null);
+    try {
+      await widget.runtime.deleteKernel(kernel);
+      if (!mounted) return;
+      setState(() {
+        _installed[kernel.id] = null;
+        _error = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _error = error.toString());
+    }
+  }
+
+  Future<void> _activate(EphemerisKernel kernel) async {
+    setState(() => _error = null);
+    try {
+      await widget.runtime.activate(kernel);
+      if (!mounted) return;
+      setState(() {});
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _error = error.toString());
+    }
   }
 
   String _bytes(int value) {
@@ -100,6 +122,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Lade die JPL-Ephemeriden einmalig auf dein Gerät. Danach stehen sie auch ohne Internetverbindung zur Verfügung.',
             style: TextStyle(color: Color(0xFF716653), height: 1.45),
           ),
+          if (widget.runtime.restoreError != null) ...[
+            const SizedBox(height: 12),
+            Text('Wiederherstellung fehlgeschlagen: ${widget.runtime.restoreError}',
+                style: const TextStyle(color: Colors.red)),
+          ],
+          if (widget.runtime.persistenceWarning != null) ...[
+            const SizedBox(height: 8),
+            Text(widget.runtime.persistenceWarning!,
+                style: const TextStyle(color: Color(0xFF9A7135))),
+          ],
           const SizedBox(height: 16),
           for (final kernel in EphemerisKernel.available)
             _kernelCard(kernel),
@@ -133,6 +165,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final path = _installed[kernel.id];
     final isDownloading = _downloading == kernel.id;
     final isBusy = _downloading != null;
+    final isActive = widget.runtime.activeKernelId == kernel.id;
+    final anotherKernelActive = widget.runtime.hasActiveEngine && !isActive;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -152,7 +186,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                if (path != null)
+                if (isActive)
+                  const Chip(
+                    avatar: Icon(Icons.stars, size: 16, color: Colors.green),
+                    label: Text('Aktiv für Berechnungen'),
+                  )
+                else if (path != null)
                   const Chip(
                     avatar: Icon(Icons.check_circle, size: 16, color: Colors.green),
                     label: Text('Lokal gespeichert'),
@@ -171,13 +210,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: const TextStyle(fontSize: 11, color: Color(0xFF82745F)),
               ),
             const SizedBox(height: 12),
-            if (path != null)
+            if (path != null && !isActive) ...[
+              FilledButton.icon(
+                onPressed: isBusy || anotherKernelActive
+                    ? null
+                    : () => _activate(kernel),
+                icon: const Icon(Icons.play_circle_outline),
+                label: Text(anotherKernelActive
+                    ? 'Neustart zum Wechseln erforderlich'
+                    : 'Für Berechnungen aktivieren'),
+              ),
               OutlinedButton.icon(
                 onPressed: isBusy ? null : () => _delete(kernel),
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Vom Gerät löschen'),
-              )
-            else
+              ),
+            ] else if (isActive)
+              const Text('Diese Datei bleibt bis zum Beenden der App geöffnet.',
+                  style: TextStyle(color: Color(0xFF716653), fontSize: 12))
+            else if (path == null)
               FilledButton.icon(
                 onPressed: isBusy ? null : () => _download(kernel),
                 icon: isDownloading
