@@ -3,7 +3,7 @@ import 'celestial_position.dart';
 /// Result returned by a verified ephemeris implementation.
 class ChartCalculationResult {
   ChartCalculationResult({
-    required this.positions,
+    required List<CelestialPosition> positions,
     required this.engineId,
     required this.engineVersion,
     required this.calculatedAtUtc,
