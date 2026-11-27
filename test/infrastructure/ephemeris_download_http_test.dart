@@ -98,7 +98,7 @@ void main() {
       server!.listen((request) async {
         request.response.statusCode = HttpStatus.ok;
         request.response.contentLength = expectedBytes.length + 20;
-        final socket = request.response.detachSocket();
+        final socket = await request.response.detachSocket();
         socket.add(expectedBytes.take(5).toList());
         await socket.flush();
         socket.destroy();
