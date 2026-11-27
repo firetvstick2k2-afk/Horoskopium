@@ -4,7 +4,7 @@ import 'package:horoskopium/main.dart';
 
 void main() {
   testWidgets('Horoskopium home screen renders', (tester) async {
-    await tester.pumpWidget(const HoroskopiumApp());
+    await tester.pumpWidget(HoroskopiumApp());
 
     expect(find.text('HOROSKOPIUM'), findsOneWidget);
     expect(find.text('Die Sprache der Sterne'), findsOneWidget);
