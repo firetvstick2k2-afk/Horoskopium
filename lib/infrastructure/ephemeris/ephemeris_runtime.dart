@@ -16,10 +16,12 @@ typedef SaveKernelSelection = Future<void> Function(String? kernelId);
 class EphemerisRuntime {
   EphemerisRuntime({
     required EphemerisDownloadService downloads,
+    List<EphemerisKernel> kernels = EphemerisKernel.available,
     EphemerisEngineFactory? engineFactory,
     LoadKernelSelection? loadSelection,
     SaveKernelSelection? saveSelection,
   })  : _downloads = downloads,
+        _kernels = List.unmodifiable(kernels),
         _engineFactory =
             engineFactory ?? HeveliusEphemerisEngine.fromSpkFilePath,
         _loadSelection = loadSelection ?? _loadSavedSelection,
@@ -28,6 +30,7 @@ class EphemerisRuntime {
   static const _selectionKey = 'horoskopium.active_ephemeris.v1';
 
   final EphemerisDownloadService _downloads;
+  final List<EphemerisKernel> _kernels;
   final EphemerisEngineFactory _engineFactory;
   final LoadKernelSelection _loadSelection;
   final SaveKernelSelection _saveSelection;
@@ -57,7 +60,7 @@ class EphemerisRuntime {
       final savedId = await _loadSelection();
       if (savedId == null || savedId.isEmpty) return null;
       final matches =
-          EphemerisKernel.available.where((kernel) => kernel.id == savedId);
+          _kernels.where((kernel) => kernel.id == savedId);
       if (matches.isEmpty) {
         restoreError = 'Die gespeicherte Ephemeride ist unbekannt.';
         await _saveSelection(null);
@@ -111,7 +114,7 @@ class EphemerisRuntime {
     required bool persistSelection,
   }) async {
     final catalogMatches =
-        EphemerisKernel.available.where((item) => item.id == kernel.id);
+        _kernels.where((item) => item.id == kernel.id);
     if (catalogMatches.isEmpty || catalogMatches.first.fileName != kernel.fileName) {
       throw ArgumentError.value(kernel.id, 'kernel', 'Unknown ephemeris kernel.');
     }
