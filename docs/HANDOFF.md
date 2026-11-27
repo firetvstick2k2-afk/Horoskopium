@@ -6,7 +6,7 @@
 **Letzter Code-Commit:** `f398976` (Angle-Normalisierung)  
 **Letzter Test-Commit:** `d3f9c25` (Whole-Sign-Grenz- und Invarianztests)  
 **Letzter Dokumentations-Commit:** wird mit dieser Aktualisierung gesetzt.  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter sowie Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf **45948544685** auf Commit `2761dc3` ist vollständig erfolgreich: Android und iOS haben Analyze, Tests und Plattform-Builds bestanden; Android-Artefakt wurde hochgeladen. Damit sind auch die erweiterten Placidus-Referenztests aus Commit `3fe0f97` durch den nachfolgenden vollständigen CI-Lauf abgedeckt. Whole Sign wurde nun zusätzlich mit Grenzwerten, allen zwölf Zeichen und Invarianz gegenüber MC/ARMC/Standortparametern getestet; der CI-Lauf für diese neue Testergänzung steht noch aus. JPL-Datendatei und vollständige fachliche Freigabe der Häusersysteme bleiben offen.
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter sowie Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf **45949515533** auf Commit `04a5a16` ist vollständig erfolgreich: Android und iOS haben Analyze, Tests und Plattform-Builds bestanden; Android-Artefakt wurde hochgeladen. Damit sind Whole-Sign-Grenz- und Invarianztests sowie die vorherigen erweiterten Placidus-Referenztests CI-seitig bestätigt. JPL-SPK-Datei und vollständige fachliche Freigabe von Placidus bleiben offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -61,6 +61,10 @@
 - Hevelius `hevelius_ephemeris: ^0.1.2`; Dart SDK-Untergrenze `>=3.13.7`.
 - Adapter `lib/infrastructure/ephemeris/hevelius_ephemeris_engine.dart` berechnet Sonne, Mond, Planeten bis Pluto, Mondknoten, Lilith, Rückläufigkeit, ASC/MC und übergibt ARMC/wahre Ekliptikschiefe an die Hausberechnung.
 - **JPL-SPK-Datei fehlt:** Sie ist weder im Repository noch im App-Bundle und wird nicht automatisch bereitgestellt. Ohne lokale SPK-Datei gibt es keine echten Planetenpositionen.
+- **Datenstrategie (Recherche 27.11.2026):** Als erste mobile Standarddatei ist `de440s.bsp` vorgesehen (ca. 31–32 MB, Abdeckung 1849–2150). JPL/NAIF führt sie im offiziellen SPK-Verzeichnis. Hevelius 0.1.2 nennt DE440s als Standard-Download; die Paket-Dokumentation beschreibt SHA-256-Prüfung und dateibasiertes Öffnen ohne komplettes Einlesen in den RAM. DE442 (ca. 114–115 MB, 1550–2650) bleibt eine spätere Option für erweiterte historische Abdeckung; DE441 (ca. 3,3 GB) ist für die mobile Standardinstallation ausdrücklich ungeeignet.
+- **Bereitstellungsprinzip:** SPK nicht ins Git-Repository oder direkt ins APK/IPA committen/bundlen. Download nur nach ausdrücklicher Nutzeraktion bzw. beim erstmaligen Setup mit klarer Anzeige von Dateigröße, Abdeckung, WLAN/Mobilfunk und Speicherbedarf; Download in temporäre Datei, Integritätsprüfung anhand eines vertrauenswürdig eingebetteten SHA-256-Werts, erst danach atomar in den finalen App-Datenpfad übernehmen. Vorhandene gültige Datei weiterverwenden; bei Abbruch/Fehler keine beschädigte Datei als verfügbar markieren. Offline-Nutzung nach erfolgreichem Download.
+- **Noch nicht implementiert/abgesichert:** Android-/iOS-Dateipfad und Berechtigungen, HTTP-Download mit Resume/Retry, SHA-256-Validierung im App-Code, Dateiversions-/Schema-Metadaten, Speicherplatzprüfung, Update-/Löschverhalten und UI-Setup. Erst nach Klärung dieser Punkte den Downloader bauen.
+- **Lizenz-/Attribution:** JPL/NAIF stellt das SPK-Verzeichnis öffentlich bereit und bittet um angemessene Quellenangabe/Referenzierung. Das ist keine pauschale Lizenzfreigabe für sämtliche Daten, Bibliotheken oder Drittinhalte. Hevelius-Code hat Apache-2.0; Paket- und Dritt-Datenhinweise/NOTICE müssen mitgeliefert werden. Fixsternwerte mit ESA-NC-Klausel bleiben ausgeschlossen. Als geplante App-Attribution: „Planetary ephemeris: JPL DE440s (NASA/JPL NAIF); calculations by Hevelius.“ Vor kommerzieller Veröffentlichung die konkreten JPL-Datenbedingungen und alle Notices nochmals rechtlich prüfen.
 - Chiron und Asteroiden sind noch nicht im Adapter eingebunden.
 - Hevelius-Fixsternwerte mit ESA CC BY-NC 3.0 IGO bis zur Klärung kommerzieller Rechte nicht verwenden.
 
@@ -118,16 +122,16 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 ## 4b. Hevelius und JPL-Daten
 
 - Hevelius 0.1.2 ist laut Paketmetadaten reines Dart und Apache-2.0; Android/iOS werden unterstützt.
-- DE440s ca. 32 MB (1849–2150), DE442 ca. 115 MB (1550–2650). Datenbereitstellung, Rechte/Attribution, Offline-Installation und Speicherbedarf prüfen.
-- Paket ist jung (0.1.x); Plattformtests und unabhängige Vergleiche sind Pflicht.
-- Adapter kann lokale SPK-Datei öffnen; diese wird derzeit nicht mitgeliefert oder automatisch bereitgestellt.
+- DE440s ist als erste mobile Standarddatei festgelegt (ca. 31–32 MB; 1849–2150); DE442 bleibt optionale spätere Erweiterung (ca. 114–115 MB; 1550–2650). Offizieller Download-Index: https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/.
+- Hevelius-Paketdokumentation: Download-Script mit SHA-256-Prüfung; Datei wird aus lokalem Pfad mit `openSpkFile` verwendet. Der bestehende Adapter öffnet bereits einen lokalen Pfad.
+- Noch keine mobile Download-/Installationslogik, keine SHA-Verifikation in Horoskopium und keine tatsächliche SPK-Datei im App-Sandbox-Pfad. Keine Planetenberechnung als produktionsbereit ausgeben, bis dies integriert und auf beiden Plattformen getestet ist.
+- Paket ist jung (0.1.x); Plattformtests und unabhängige Vergleiche bleiben Pflicht.
 
 ## 5. Nächste Schritte
 
-1. CI-Lauf für Whole-Sign-Grenz- und Invarianztests (Commit `d3f9c25`) abschließen und prüfen.
-2. Placidus weiterhin fachlich prüfen und anschließend reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
-3. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
-4. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
+1. SPK-Downloader/Installer für DE440s entwerfen und implementieren: Plattformpfade, HTTPS-Download, SHA-256-Integrität, temporäre Datei/atomarer Abschluss, Abbruch/Retry und Offline-Status.
+2. Echte DE440s-Datei auf Android und iOS installieren und Hevelius gegen dokumentierte JPL-Horizons-Referenzfälle testen.
+3. Placidus weiterhin fachlich prüfen und reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
 5. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie.
 6. TSL1-Verifikation aus Topf Secret portieren; Generator nicht ändern.
 7. Profile-Datenschutz, Export/Import und Migration verbessern.
