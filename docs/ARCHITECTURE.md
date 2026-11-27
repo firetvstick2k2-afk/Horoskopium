@@ -17,22 +17,22 @@ Eine gemeinsame Flutter-/Dart-Anwendung für Android und iOS. UI, Datenmodell, L
 lib/
   main.dart
   application/
-    ports/                 # Schnittstellen zu technischen Diensten
-    use_cases/             # fachliche Anwendungsabläufe
+    ports/
+    use_cases/
   domain/
-    astrology/             # Winkel, Positionen, Häuser, Aspekte, Radix
-    profiles/              # Geburtsprofil-Fachmodell
-    licensing/             # Lizenzstatus und Regeln (ohne private Schlüssel)
+    astrology/
+    profiles/
+    licensing/
   infrastructure/
-    ephemeris/             # Adapter der ausgewählten Ephemeriden-Engine
-    time/                  # Zeitzonen und historische DST-Auflösung
-    location/              # Geocoding und Koordinaten
-    storage/                # lokale Persistenz und Migrationen
-    licensing/              # TSL1-Prüfung mit öffentlichem Schlüssel
-    pdf/                    # Berichtserzeugung
-  models/                  # bestehende UI-nahe Modelle; schrittweise migrieren
+    ephemeris/
+    time/
+    location/
+    storage/
+    licensing/
+    pdf/
+  models/
   screens/
-  services/                # bestehende Services; schrittweise migrieren
+  services/
   widgets/
 test/
   domain/
@@ -55,46 +55,43 @@ Die Struktur wird schrittweise aufgebaut. Bestehende Profile und UI werden nicht
 
 ## Astrologische Berechnung
 
-Berechnung und Interpretation strikt trennen. Die aktuelle Implementierung:
+Berechnung und Interpretation strikt trennen:
 - `ChartCalculationInput` verlangt einen bereits korrekt aufgelösten UTC-Zeitpunkt, valide Koordinaten und ein unterstütztes Häusersystem.
 - `EphemerisEngine` ist der austauschbare Port.
 - `ChartCalculationResult` enthält berechnete Positionen, ASC/MC, zwölf Hausspitzen sowie angefordertes und tatsächlich verwendetes Häusersystem.
 - `CalculateRadix` validiert Eingabe und Ergebnis.
 - `HouseCalculator` ist ein reines Dart-Domain-Modul und unabhängig von Hevelius und Flutter.
 
-Die Hevelius-Engine ist als Infrastruktur-Adapter integriert. Die JPL-SPK-Datei muss zur Laufzeit als lokale Datei bereitgestellt werden; ohne passende Datendatei ist keine Positionsberechnung möglich. Keine Dummy-Positionen oder erfundenen Aspekte in echte Charts übernehmen.
-
 ### Ausgewählte Engine: Hevelius Ephemeris
 
-Die ausgewählte Abhängigkeit **hevelius_ephemeris 0.1.2** (Apache-2.0) ist in `pubspec.yaml` eingetragen. `HeveliusEphemerisEngine` in `lib/infrastructure/ephemeris/hevelius_ephemeris_engine.dart` implementiert den `EphemerisEngine`-Port. Die bestehende Application-/Domain-Schnittstelle bleibt die Grenze zur Bibliothek.
+Die ausgewählte Abhängigkeit **hevelius_ephemeris 0.1.2** (Apache-2.0) ist in `pubspec.yaml` eingetragen. `HeveliusEphemerisEngine` implementiert den `EphemerisEngine`-Port.
 
-Begründung:
-- Reines Dart ohne native Bibliotheken und ohne Flutter-Abhängigkeit; laut Paketmetadaten für Android und iOS ausgewiesen.
-- Berechnet geozentrische ekliptikale Positionen für Sonne, Mond, Planeten und Pluto sowie Chiron und mehrere Asteroiden.
-- Enthält mittleren/wahren Mondknoten, mittlere/osculierende Lilith und Längengeschwindigkeiten für Rückläufigkeit.
-- Stellt Aszendent, MC, lokale Sternzeit/ARMC sowie wahre Schiefe der Ekliptik bereit.
-- Paketcode steht unter Apache-2.0; Lizenz- und NOTICE-Hinweise müssen in der ausgelieferten App erhalten bleiben.
+- Reines Dart ohne native Bibliotheken; Paketmetadaten weisen Android/iOS aus.
+- Berechnet Sonne, Mond, Planeten bis Pluto, Mondknoten und Lilith; Adapter liefert Rückläufigkeit sowie ASC/MC.
+- Stellt ARMC und wahre Ekliptikschiefe für die Hausgeometrie bereit.
+- JPL-SPK-Dateien sind nicht im Paket enthalten. DE440s ca. 32 MB (1849–2150), DE442 ca. 115 MB (1550–2650); Datenbereitstellung und Nutzungs-/Attributionsbedingungen sind noch zu klären.
+- Paket 0.1.x ist jung. Tests, Performance und unabhängige Referenzvergleiche sind vor Produktivnutzung erforderlich.
+- 22 mitgelieferte Fixstern-Daten enthalten Hipparcos-Werte unter ESA CC BY-NC 3.0 IGO; kommerzielle Nutzung ist ungeklärt. Bis zur Klärung nicht kommerziell ausliefern.
 
-Wichtige Einschränkungen und offene Prüfungen:
-- Paketversion 0.1.2 verlangt Dart SDK `^3.13.7`; die App-SDK-Untergrenze wurde auf `>=3.13.7` angehoben. CI muss die tatsächliche Flutter-/Dart-Kompatibilität noch bestätigen.
-- Die freie API stellt ASC/MC, ARMC und wahre Ekliptikschiefe bereit, aber keine vollständigen Häusersysteme. Die Hausgeometrie wird deshalb separat in unserem eigenen Domain-Modul berechnet.
-- Die mitgelieferten 22 Fixstern-Daten enthalten Hipparcos-Werte mit ESA CC BY-NC 3.0 IGO; eine kommerzielle Nutzungserlaubnis ist laut NOTICE noch offen. Diese Fixstern-Daten dürfen wir bis zur Klärung nicht in einer kommerziellen Horoskopium-Ausgabe verwenden. Die Kernberechnung der Planetenpositionen ist davon getrennt.
-- Die JPL-Ephemeridendateien sind nicht im Paket enthalten. DE440s umfasst etwa 32 MB und den Zeitraum 1849–2150; DE442 etwa 115 MB und 1550–2650. Datenbereitstellung, Speicherbedarf, Offline-Installation und die jeweiligen NOTICE-/Quellenhinweise müssen vor der endgültigen Auswahl des Datenpakets geprüft werden.
-- Das Paket ist jung (0.1.x). Vor produktiver Nutzung sind API, Tests, Performance auf Android/iOS und Vergleichsrechnungen mit unabhängigen Referenzen zu prüfen.
-
-Der Adapter berechnet Sonne, Mond, Merkur bis Pluto, mittleren/wahren Mondknoten sowie mittlere/osculierende Lilith und Rückläufigkeit. Für Häuser nutzt er die vom Hevelius-Ergebnis gelieferten ASC/MC/ARMC-Werte und die wahre Ekliptikschiefe zum Geburtszeitpunkt. Engine-ID/-Version und effektives Häusersystem werden im Ergebnis gespeichert. `fromSpkFilePath` öffnet eine lokale SPK-Datei on demand; die JPL-Datei wird derzeit weder mitgeliefert noch automatisch heruntergeladen/kopiert. Ephemera bleibt Rückfalloption.
+Der Adapter benötigt eine lokal bereitgestellte JPL-SPK-Datei. Er berechnet derzeit Sonne, Mond, Merkur bis Pluto, mittleren/wahren Mondknoten, mittlere/osculierende Lilith und Rückläufigkeit. Chiron und Asteroiden sind noch nicht angebunden. `fromSpkFilePath` öffnet eine lokale SPK-Datei on demand. Ohne diese Datendatei ist keine echte Planetenberechnung möglich.
 
 ### Häusersysteme
 
-Implementiert in `lib/domain/astrology/house_calculator.dart`:
+Implementiert in `lib/domain/astrology/house_calculator.dart`, ohne zusätzliche Paketabhängigkeit:
 
-- **Placidus** ist das voreingestellte westliche Quadranten-Häusersystem. Die Zwischenhäuserspitzen werden über die Teilung der tag-/nachtseitigen Halbkreisbögen iterativ bestimmt. Die gegenüberliegenden Spitzen werden exakt um 180° gespiegelt; ASC/DSC und MC/IC sind die vier Winkel.
-- **Whole Sign** ist die alternative Berechnung. Haus 1 beginnt am Anfang des Tierkreiszeichens, in dem der Aszendent steht; jedes folgende Haus umfasst genau ein Zeichen.
-- Bei Placidus in bzw. jenseits der Polarkreisgrenze (`|Breite| >= 90° - wahre Ekliptikschiefe`) ist das System mathematisch nicht definiert. In diesem Fall wird ausdrücklich auf Whole Sign gewechselt. Das Ergebnis markiert `usedPolarHouseFallback` und enthält sowohl angefordertes als auch tatsächlich verwendetes System.
-- Nicht unterstützte Systemnamen führen zu einem Fehler; sie werden niemals stillschweigend interpretiert.
-- Die Berechnung ist eigenständig und hat keine zusätzliche Paket- oder Lizenzabhängigkeit.
+- **Placidus** ist das voreingestellte Quadranten-Häusersystem. Die vier Zwischenhäuserspitzen werden iterativ anhand der Teilung der tag-/nachtseitigen Halbkreisbögen in Rektaszension bestimmt.
+- **Whole Sign** ist die Alternative. Haus 1 beginnt am Anfang des Tierkreiszeichens, in dem der Aszendent steht; jedes folgende Haus umfasst genau ein Zeichen.
+- ASC/DSC und MC/IC werden als gegenüberliegende Achsen übernommen; die übrigen gegenüberliegenden Spitzen werden exakt um 180° gespiegelt.
+- Die Umrechnung von Rektaszension in ekliptikale Länge verwendet die Schiefe der Ekliptik.
+- Wenn Placidus an der mathematischen Polarkreisgrenze liegt oder eine Zwischenhausspitze circumpolar/nicht lösbar ist, wird ausdrücklich Whole Sign verwendet. Das Ergebnis markiert `usedPolarHouseFallback` und speichert angefordertes und effektives System.
+- Unbekannte Systemnamen führen zu einem Fehler.
 
-Fachliche Freigabe bleibt offen: Die Implementierung braucht noch numerische Vergleichstests gegen unabhängige Referenzfälle (z. B. Swiss Ephemeris swe_houses_armc / dokumentierte Testvektoren) und reale Radix-Stichproben, bevor wir sie als produktionsreif bezeichnen. Derzeitige Unit-Tests prüfen Struktur, Winkelverankerung, Antipoden, Whole-Sign-Zuordnung, Polarfallback und ungültige Eingaben.
+Prüfstatus:
+- Flutter-Analyse deckte zunächst einen doppelten Feld-Initializer und einen fehlenden App-Widgettest auf. Beides wurde korrigiert.
+- Ein numerischer Äquator-Test für die Placidus-Semi-Arc-Geometrie wurde ergänzt.
+- Die Koordinatentransformation von Rektaszension in ekliptikale Länge wurde bei der Prüfung korrigiert.
+- **Noch keine Produktivfreigabe:** unabhängige vollständige Referenzvektoren (z. B. Swiss Ephemeris house tables / `swe_houses_armc`) und reale Radix-Vergleiche müssen noch bestanden werden. Swiss Ephemeris dient dabei nur als Vergleichsreferenz; es wird nicht als Laufzeitbibliothek eingebunden.
+- CI muss nach den letzten Korrekturen erneut erfolgreich Analyze, Tests und Android-/iOS-Builds durchlaufen.
 
 ## Zeitzonen und Orte
 
@@ -102,7 +99,7 @@ Geburtsort und lokale Geburtszeit sind nicht ausreichend, um UTC ohne Orts-/Zeit
 
 ## Lizenz
 
-Ein Lizenzschlüssel für Topf Secret und Horoskopium, auf Android und iOS. Bestehendes TSL1-Format, vorhandener Hauptschlüssel und Generator sollen wiederverwendet werden. Die Tokenprüfung wird anhand des Topf-Secret-Quellcodes portiert. Private Signierschlüssel gehören ausschließlich in Licence Studio; in Apps liegt nur der öffentliche Prüfschlüssel.
+Ein Lizenzschlüssel für Topf Secret und Horoskopium, auf Android und iOS. Bestehendes TSL1-Format, vorhandener Hauptschlüssel und Generator sollen wiederverwendet werden. Private Signierschlüssel gehören ausschließlich in Licence Studio; in Apps liegt nur der öffentliche Prüfschlüssel.
 
 ## Datenschutz
 
@@ -112,10 +109,9 @@ Geburtsdatum, Uhrzeit und Ort sind persönliche Daten. Als Ausgangspunkt lokale 
 
 - Chartdarstellung als Flutter-CustomPainter, nicht als Rasterbild.
 - InteractiveViewer stellt Zoom und Verschieben bereit.
-- Zeichenring, Häuser-Segmente, Gradeinteilung und Sternenhintergrund sind reine Darstellungselemente.
-- Die aktuelle Radix-Ansicht ist ausdrücklich ein visueller Prototyp ohne berechnete Planetenpositionen oder Aspekte.
-- Planetensymbole, Achsen (AC/DC/MC/IC), Aspekte und Positionsliste werden datengetrieben aus dem späteren Berechnungsergebnis ergänzt.
+- Die aktuelle Radix-Ansicht ist ein visueller Prototyp ohne berechnete Planetenpositionen oder Aspekte.
+- Planetensymbole, Achsen, Aspekte und Positionsliste werden datengetrieben ergänzt, sobald echte Berechnungsergebnisse vorliegen.
 
 ## Status
 
-Domain-Häuserberechnung (Placidus/Whole Sign) ist angelegt und in den Hevelius-Adapter integriert. JPL-Datenbereitstellung, CI-/Build-Verifikation, unabhängige numerische Haus-Referenzvergleiche, historische Zeitzonen-/Geocoding-Adapter, Lizenzintegration, Chart-Anbindung und PDF-Bibliothek bleiben offen.
+Placidus/Whole Sign sind im Domain-Modul implementiert und in den Hevelius-Adapter integriert. Noch offen sind erfolgreiche CI-Verifikation, vollständige unabhängige Haus-Referenztests, JPL-Datenbereitstellung, historische Zeitzonen-/Geocoding-Adapter, Lizenzintegration, Chart-Anbindung und PDF-Ausgabe.
