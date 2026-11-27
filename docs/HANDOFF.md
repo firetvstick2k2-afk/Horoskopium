@@ -4,8 +4,8 @@
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
 **Letzte Code-Commits:** `3fbe837`, `0249d1a`, `da1095d`  
-**Letzter Test-Commit:** `7512083`  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45944214217 ist vollständig erfolgreich: Android-Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS-Analyze, Tests und unsigned Build bestanden. Bei der unabhängigen Prüfung der Placidus-Geometrie wurden zwei Koordinatenfehler korrigiert: RA→ekliptikale Länge und RA→Deklination. Die korrigierte semi-arc-Iteration stimmt für mehrere Breiten und beide Hemisphären mit unabhängigen Swiss-Ephemeris-Referenzvektoren überein. Neue Regressionstests sind committed; CI-Prüfung steht noch aus. JPL-Datendatei und vollständige unabhängige Haus-Referenzfreigabe weiterhin offen.
+**Letzter Test-Commit:** `51e86a9`  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45946079434 ist vollständig erfolgreich: Android- und iOS-Analyze, Tests sowie Plattform-Builds bestanden. Die Placidus-Formeln für RA→ekliptikale Länge und RA→Deklination wurden korrigiert und unabhängig mit Swiss Ephemeris 2.10.03 verglichen. Zusätzliche Tests prüfen nun alle zwölf Hausspitzen in mehreren ARMC-/Breitenkonstellationen sowie knapp unter und exakt an der Polarkreisgrenze. CI für den jüngsten Test-Commit steht noch aus. JPL-Datendatei und vollständige fachliche Freigabe bleiben offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -91,6 +91,9 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Die vier Zwischenhausspitzen stimmen nach beiden Korrekturen in den geprüften Fällen auf < 1e-6° mit den unabhängigen Referenzwerten überein: ARMC 0°/Breite 0°/ε 23.4391667°; ARMC 340°/48.4° N; ARMC 150°/33.9° S; ARMC 20°/60° N. Für den Äquatorfall lauten die vier Werte 32.1812349°, 62.0894279°, 117.9105721° und 147.8187651°.
 - Codekorrekturen: `3fbe837` (RA→Länge), `0249d1a` und `da1095d` (RA→Deklination und Zentralisierung). Regressionstests für Äquator, mittlere nördliche Breite, südliche Hemisphäre und 60° N in Commit `7512083`. **CI-Prüfung dieser letzten Änderungen steht noch aus.**
 - Ältere Placidus-Korrektur-Commits: `4a212a7f3ce6d950b78a84ff986ba06d29b49caf` (Projektion/Polar-Fallback) und `3fd0b2f9806deb24c79f724b283dc6da29c889c5` (numerischer Äquator-Test).
+- Erweiterte unabhängige Referenzprüfung mit Swiss Ephemeris 2.10.03 (swe.houses_armc, System Placidus): zusätzliche ARMC-/Breitenfälle 45°/20° N, 210°/50° S und 300°/55° N. In allen Fällen stimmen alle zwölf Hausspitzen einschließlich der Wrap-around-Werte 0°/360° bis auf numerische Rundung mit dem Referenzsystem überein.
+- Polargrenzprüfung: Bei ε = 23.44° ist die Grenze 90° − ε = 66.56°. Der Fall 66.559° N (ARMC 45°) liefert noch gültige Placidus-Häuser und stimmt für alle zwölf Spitzen mit Swiss Ephemeris überein. Genau bei 66.56° greift der explizite Whole-Sign-Fallback.
+- Diese zusätzlichen Regressionstests wurden in Commit `51e86a9` ergänzt. Der zugehörige CI-Lauf ist nach dem Push noch zu prüfen.
 - **Placidus ist ausdrücklich NICHT fachlich freigegeben:** unabhängige vollständige Referenzvektoren (z. B. Swiss-Ephemeris-`swe_houses_armc`) und reale Radix-Stichproben fehlen. Swiss Ephemeris ist nur Vergleichsreferenz, keine Runtime-Abhängigkeit.
 - Vor Freigabe mehrere Breitengrade (Äquator, mittlere und hohe Breiten, beide Hemisphären), mehrere ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge, Gegenüberliegende und Polargrenzfälle unabhängig vergleichen.
 
@@ -103,8 +106,8 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. Neuen CI-Lauf nach den Placidus-Korrekturen (`3fbe837`, `0249d1a`, `da1095d`, `7512083`) vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
-2. Placidus weiter gegen unabhängige Referenzwerte prüfen; zusätzliche ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge und Polargrenzfälle vergleichen.
+1. CI-Lauf nach dem erweiterten Test-Commit `51e86a9` vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
+2. Placidus-Referenzprüfung weiter verbreitern: zusätzliche ARMC-Werte, beide Hemisphären, mehrere Jahreszeiten-/Obliquitätswerte und geometrische Reihenfolge/Abstände der Häuser prüfen.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
 5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
