@@ -33,12 +33,15 @@ void main() {
       int statusCode = HttpStatus.ok,
       List<int>? body,
       String? expectedSha256,
+      bool omitContentLength = false,
     }) async {
       final responseBytes = body ?? expectedBytes;
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server!.listen((request) async {
         request.response.statusCode = statusCode;
-        request.response.contentLength = responseBytes.length;
+        if (!omitContentLength) {
+          request.response.contentLength = responseBytes.length;
+        }
         request.response.add(responseBytes);
         await request.response.close();
       });
@@ -69,6 +72,23 @@ void main() {
       expect(progress, isNotEmpty);
       expect(progress.last.$1, expectedBytes.length);
       expect(progress.last.$2, expectedBytes.length);
+    });
+
+    test('downloads and verifies a chunked response without Content-Length',
+        () async {
+      final kernel = await serve(omitContentLength: true);
+      final progress = <(int, int)>[];
+
+      final installedPath = await service.download(
+        kernel,
+        onProgress: (received, total) => progress.add((received, total)),
+      );
+
+      expect(await File(installedPath).readAsBytes(), expectedBytes);
+      expect(progress, isNotEmpty);
+      expect(progress.last.$1, expectedBytes.length);
+      expect(progress.last.$2, -1);
+      expect(await File('$installedPath.part').exists(), isFalse);
     });
 
     test('rejects non-200 HTTP responses and removes the partial file', () async {
