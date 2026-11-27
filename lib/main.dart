@@ -167,7 +167,7 @@ class _BirthChartCard extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFB18A4A), width: 2),
               ),
               child: const Center(
-                child: const RadixPreview(size: 96),
+                child: RadixPreview(size: 96),
               ),
             ),
             const SizedBox(width: 18),
