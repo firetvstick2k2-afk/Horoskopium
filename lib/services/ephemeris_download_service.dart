@@ -50,12 +50,15 @@ class EphemerisDownloadService {
   EphemerisDownloadService({
     Future<Directory> Function()? supportDirectoryProvider,
     HttpClient Function()? httpClientFactory,
+    Future<File> Function(File source, String targetPath)? fileRenamer,
   })  : _supportDirectoryProvider =
             supportDirectoryProvider ?? getApplicationSupportDirectory,
-        _httpClientFactory = httpClientFactory ?? HttpClient.new;
+        _httpClientFactory = httpClientFactory ?? HttpClient.new,
+        _fileRenamer = fileRenamer ?? ((source, path) => source.rename(path));
 
   final Future<Directory> Function() _supportDirectoryProvider;
   final HttpClient Function() _httpClientFactory;
+  final Future<File> Function(File source, String targetPath) _fileRenamer;
 
   Future<File> _fileFor(EphemerisKernel kernel) async {
     final root = await _supportDirectoryProvider();
@@ -70,7 +73,7 @@ class EphemerisDownloadService {
 
     // Recover an interrupted replacement before checking the active file.
     if (!await file.exists() && await backup.exists()) {
-      await backup.rename(file.path);
+      await _fileRenamer(backup, file.path);
     }
     if (!await file.exists()) return null;
 
@@ -84,7 +87,7 @@ class EphemerisDownloadService {
     // the previous verified copy whenever it is still available.
     if (await backup.exists() && await _sha256(backup) == kernel.sha256) {
       await file.delete();
-      await backup.rename(file.path);
+      await _fileRenamer(backup, file.path);
       return file.path;
     }
 
@@ -134,13 +137,13 @@ class EphemerisDownloadService {
       // Validate/recover any previous version before starting the swap.
       await installedPath(kernel);
       final backup = File('${target.path}.bak');
-      if (await target.exists()) await target.rename(backup.path);
+      if (await target.exists()) await _fileRenamer(target, backup.path);
       try {
-        await temporary.rename(target.path);
+        await _fileRenamer(temporary, target.path);
       } catch (_) {
         // Restore the previous file if promotion of the verified download fails.
         if (!await target.exists() && await backup.exists()) {
-          await backup.rename(target.path);
+          await _fileRenamer(backup, target.path);
         }
         rethrow;
       }
