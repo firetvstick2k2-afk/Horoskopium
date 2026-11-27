@@ -170,8 +170,9 @@ class HouseCalculator {
     var rightAscension = ramc + offset;
 
     for (var iteration = 0; iteration < _maxIterations; iteration++) {
-      final declination = math.asin(
-        math.sin(rightAscension) * math.sin(obliquity),
+      final declination = math.atan2(
+        math.sin(obliquity) * math.sin(rightAscension),
+        math.cos(obliquity),
       );
       final tangentProduct = math.tan(latitude) * math.tan(declination);
       if (!tangentProduct.isFinite || tangentProduct.abs() >= 1) {
@@ -186,6 +187,12 @@ class HouseCalculator {
     }
     throw StateError('Placidus cusp iteration did not converge.');
   }
+
+  /// Declination of a point on the ecliptic from its right ascension:
+  /// tan(delta) = tan(epsilon) * sin(RA).
+  /// atan2 preserves the correct quadrant without an asin domain issue.
+  static double _rightAscensionToDeclination(double rightAscension, double eps) =>
+      math.atan2(math.sin(eps) * math.sin(rightAscension), math.cos(eps));
 
   /// Inverts the equatorial-to-ecliptic relation for a point on the ecliptic:
   /// RA = atan2(sin(lambda) * cos(epsilon), cos(lambda)).
