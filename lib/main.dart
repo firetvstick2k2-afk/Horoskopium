@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/profiles_screen.dart';
 
 void main() {
   runApp(const HoroskopiumApp());
@@ -63,7 +64,9 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Profile',
-            onPressed: () {},
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilesScreen()),
+            ),
             icon: const Icon(Icons.account_circle_outlined),
           ),
         ],
@@ -266,7 +269,11 @@ class _FeatureTile extends StatelessWidget {
           Icons.chevron_right,
           color: Color(0xFF9A7135),
         ),
-        onTap: () {},
+        onTap: title == 'Geburtshoroskop'
+            ? () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfilesScreen()),
+                )
+            : null,
       ),
     );
   }
