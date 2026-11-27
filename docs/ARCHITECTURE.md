@@ -31,6 +31,14 @@ Ein Lizenzschlüssel für Topf Secret und Horoskopium, auf Android und iOS. Best
 
 Geburtsdatum, Uhrzeit und Ort sind persönliche Daten. Als Ausgangspunkt lokale Speicherung, Datensparsamkeit und keine Übertragung an Server ohne klaren Zweck und ausdrückliche Nutzerinformation. Export und Löschmöglichkeit vorsehen.
 
+## Radix-Visualisierung
+
+- Chartdarstellung als Flutter-CustomPainter, nicht als Rasterbild.
+- `InteractiveViewer` stellt Zoom und Verschieben bereit.
+- Zeichenring, Häuser-Segmente, Gradeinteilung und Sternenhintergrund sind reine Darstellungselemente.
+- Die aktuelle Radix-Ansicht ist ausdrücklich ein visueller Prototyp ohne berechnete Planetenpositionen oder Aspekte. Diese dürfen erst nach Auswahl und Integration einer geprüften Ephemeriden-Engine angezeigt werden.
+- Planetensymbole, Achsen (AC/DC/MC/IC), Aspekte und Positionsliste werden datengetrieben aus dem späteren Berechnungsergebnis ergänzt.
+
 ## Status
 
 Dies ist eine Leitlinie, keine bereits vollständig implementierte Architektur. Entscheidungen zu Datenbank, Ephemeriden-Engine, PDF-Bibliothek und Backup folgen nach Prototyp und Lizenzprüfung.
