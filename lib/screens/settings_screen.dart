@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (path != null)
                   const Chip(
                     avatar: Icon(Icons.check_circle, size: 16, color: Colors.green),
-                    label: Text('Installiert'),
+                    label: Text('Lokal gespeichert'),
                   )
                 else if (kernel.id == 'de442')
                   const Chip(label: Text('Empfohlen')),
