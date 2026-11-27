@@ -21,6 +21,102 @@ void main() {
       expect(result.usedPolarFallback, isFalse);
     });
 
+
+    test('Whole Sign assigns cusps correctly around sign boundaries', () {
+      const cases = <({double ascendant, double firstCusp})>[
+        (ascendant: 0, firstCusp: 0),
+        (ascendant: 29.999999, firstCusp: 0),
+        (ascendant: 30, firstCusp: 30),
+        (ascendant: 30.000001, firstCusp: 30),
+        (ascendant: 89.999999, firstCusp: 60),
+        (ascendant: 90, firstCusp: 90),
+        (ascendant: 359.999999, firstCusp: 330),
+      ];
+
+      for (final value in cases) {
+        final result = HouseCalculator.calculate(
+          system: 'Whole Sign',
+          ascendantDegrees: value.ascendant,
+          midheavenDegrees: 0,
+          armcDegrees: 0,
+          latitudeDegrees: 0,
+          obliquityDegrees: 23.44,
+        );
+
+        expect(result.cusps.first, value.firstCusp,
+            reason: 'ASC ${value.ascendant}°');
+        expect(result.cusps, hasLength(12));
+        expect(result.effectiveSystem, HouseSystem.wholeSign);
+        expect(result.usedPolarFallback, isFalse);
+      }
+    });
+
+    test('Whole Sign produces twelve consecutive 30-degree signs', () {
+      for (var sign = 0; sign < 12; sign++) {
+        final ascendant = sign * 30.0 + 17.25;
+        final result = HouseCalculator.calculate(
+          system: 'whole_sign',
+          ascendantDegrees: ascendant,
+          midheavenDegrees: 271.4,
+          armcDegrees: 188.2,
+          latitudeDegrees: -42.5,
+          obliquityDegrees: 24.1,
+        );
+
+        final first = sign * 30.0;
+        for (var house = 0; house < 12; house++) {
+          expect(
+            result.cusps[house],
+            (first + house * 30.0) % 360,
+            reason: 'Sign ${sign + 1}, house ${house + 1}',
+          );
+          final next = result.cusps[(house + 1) % 12];
+          expect((next - result.cusps[house] + 360) % 360, 30);
+        }
+      }
+    });
+
+    test('Whole Sign depends on the rising sign, not MC or location', () {
+      final first = HouseCalculator.calculate(
+        system: 'Whole Sign',
+        ascendantDegrees: 101.646,
+        midheavenDegrees: 342.84,
+        armcDegrees: 340,
+        latitudeDegrees: 48.4,
+        obliquityDegrees: 23.44,
+      );
+      final second = HouseCalculator.calculate(
+        system: 'whole-sign',
+        ascendantDegrees: 101.646,
+        midheavenDegrees: 12.5,
+        armcDegrees: 199.9,
+        latitudeDegrees: -66,
+        obliquityDegrees: 22,
+      );
+
+      expect(second.cusps, first.cusps);
+      expect(second.requestedSystem, HouseSystem.wholeSign);
+      expect(second.effectiveSystem, HouseSystem.wholeSign);
+      expect(second.usedPolarFallback, isFalse);
+    });
+
+    test('Whole Sign rejects ascendant outside the normalized range', () {
+      for (final ascendant in <double>[-0.001, 360, 720]) {
+        expect(
+          () => HouseCalculator.calculate(
+            system: 'Whole Sign',
+            ascendantDegrees: ascendant,
+            midheavenDegrees: 0,
+            armcDegrees: 0,
+            latitudeDegrees: 0,
+            obliquityDegrees: 23.44,
+          ),
+          throwsArgumentError,
+          reason: 'ASC ${ascendant}°',
+        );
+      }
+    });
+
     test('Placidus converts equatorial right ascensions to ecliptic longitude', () {
       final result = HouseCalculator.calculate(
         system: 'Placidus',
