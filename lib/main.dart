@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/profiles_screen.dart';
+import 'screens/radix_screen.dart';
+import 'widgets/radix_preview.dart';
 
 void main() {
   runApp(const HoroskopiumApp());
@@ -165,11 +167,7 @@ class _BirthChartCard extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFB18A4A), width: 2),
               ),
               child: const Center(
-                child: Icon(
-                  Icons.auto_awesome,
-                  color: Color(0xFFE6C98F),
-                  size: 48,
-                ),
+                child: const RadixPreview(size: 96),
               ),
             ),
             const SizedBox(width: 18),
@@ -271,7 +269,7 @@ class _FeatureTile extends StatelessWidget {
         ),
         onTap: title == 'Geburtshoroskop'
             ? () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfilesScreen()),
+                  MaterialPageRoute(builder: (_) => const RadixScreen()),
                 )
             : null,
       ),
