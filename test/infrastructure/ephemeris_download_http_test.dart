@@ -86,6 +86,42 @@ void main() {
       expect(await service.installedPath(kernel), isNull);
     });
 
+    test('cleans up a network-interrupted response and preserves old data',
+        () async {
+      final installedDirectory =
+          Directory('${temporaryDirectory.path}/ephemerides');
+      await installedDirectory.create();
+      final target = File('${installedDirectory.path}/fixture.bsp');
+      await target.writeAsBytes(expectedBytes);
+
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server!.listen((request) async {
+        request.response.statusCode = HttpStatus.ok;
+        request.response.contentLength = expectedBytes.length + 20;
+        request.response.add(expectedBytes.take(5).toList());
+        await request.response.close();
+      });
+      final kernel = EphemerisKernel(
+        id: 'interrupted',
+        fileName: 'fixture.bsp',
+        title: 'Fixture',
+        coverage: 'test',
+        sizeLabel: 'test',
+        url: 'http://127.0.0.1:${server!.port}/fixture.bsp',
+        sha256: sha256.convert(expectedBytes).toString(),
+      );
+      final partial = File('${target.path}.part');
+
+      await expectLater(
+        service.download(kernel, onProgress: (_, __) {}),
+        throwsA(anything),
+      );
+
+      expect(await target.readAsBytes(), expectedBytes);
+      expect(await partial.exists(), isFalse);
+      expect(await File('${target.path}.bak').exists(), isFalse);
+    });
+
     test('rejects a checksum mismatch and preserves an existing valid file',
         () async {
       final installedDirectory =
