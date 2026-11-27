@@ -61,11 +61,11 @@ Berechnung und Interpretation strikt trennen. Die aktuelle Implementierung legt 
 - ChartCalculationResult enthält berechnete Positionen sowie Engine-ID und Version.
 - CalculateRadix validiert Eingabe und Ergebnis.
 
-Es ist noch keine Ephemeriden-Engine integriert. Keine Dummy-Positionen oder erfundenen Aspekte in echte Charts übernehmen.
+Die Hevelius-Engine ist als Infrastruktur-Adapter integriert. Die JPL-SPK-Datei muss zur Laufzeit als lokale Datei bereitgestellt werden; ohne passende Datendatei ist keine Positionsberechnung möglich. Keine Dummy-Positionen oder erfundenen Aspekte in echte Charts übernehmen.
 
 ### Ausgewählte Engine: Hevelius Ephemeris
 
-Die technische Vorauswahl ist **hevelius_ephemeris 0.1.2** (Apache-2.0) als astronomischer Berechnungskern. Der Adapter wird in `lib/infrastructure/ephemeris/` implementiert und ausschließlich über `EphemerisEngine` angesprochen. Die bestehende Application-/Domain-Schnittstelle bleibt die Grenze zur Bibliothek.
+Die ausgewählte Abhängigkeit **hevelius_ephemeris 0.1.2** (Apache-2.0) ist in `pubspec.yaml` eingetragen. `HeveliusEphemerisEngine` in `lib/infrastructure/ephemeris/hevelius_ephemeris_engine.dart` implementiert den `EphemerisEngine`-Port. Die bestehende Application-/Domain-Schnittstelle bleibt die Grenze zur Bibliothek.
 
 Begründung:
 - Reines Dart ohne native Bibliotheken und ohne Flutter-Abhängigkeit; laut Paketmetadaten für Android und iOS ausgewiesen.
@@ -75,13 +75,13 @@ Begründung:
 - Paketcode steht unter Apache-2.0; Lizenz- und NOTICE-Hinweise müssen in der ausgelieferten App erhalten bleiben.
 
 Wichtige Einschränkungen und offene Prüfungen:
-- Paketversion 0.1.2 verlangt Dart SDK `^3.13.7`; die bisherige App-Deklaration `>=3.4.0` ist damit nicht kompatibel. Vor Einbindung muss die SDK-Baseline bewusst angehoben und in CI bestätigt werden.
-- Die dokumentierte API nennt Aszendent und MC, aber keine vollständigen Häuserspitzen bzw. Häusersysteme. Hausberechnung ist deshalb separat zu implementieren oder durch eine weitere geprüfte, lizenzkompatible Lösung zu ergänzen. Keine Häuser aus unbestätigten Annahmen ableiten.
+- Paketversion 0.1.2 verlangt Dart SDK `^3.13.7`; die App-SDK-Untergrenze wurde auf `>=3.13.7` angehoben. CI muss die tatsächliche Flutter-/Dart-Kompatibilität noch bestätigen.
+- Die dokumentierte freie API stellt Aszendent und MC bereit, aber keine vollständigen Häuserspitzen bzw. Häusersysteme; die Hevelius-Website führt astrologische Häusersysteme als Pro-Funktion. Hausberechnung muss daher separat und lizenzkompatibel ergänzt werden. Keine Häuser aus unbestätigten Annahmen ableiten.
 - Die mitgelieferten 22 Fixstern-Daten enthalten Hipparcos-Werte mit ESA CC BY-NC 3.0 IGO; eine kommerzielle Nutzungserlaubnis ist laut NOTICE noch offen. Diese Fixstern-Daten dürfen wir bis zur Klärung nicht in einer kommerziellen Horoskopium-Ausgabe verwenden. Die Kernberechnung der Planetenpositionen ist davon getrennt.
 - Die JPL-Ephemeridendateien sind nicht im Paket enthalten. DE440s umfasst etwa 32 MB und den Zeitraum 1849–2150; DE442 etwa 115 MB und 1550–2650. Datenbereitstellung, Speicherbedarf, Offline-Installation und die jeweiligen NOTICE-/Quellenhinweise müssen vor der endgültigen Auswahl des Datenpakets geprüft werden.
 - Das Paket ist jung (0.1.x). Vor produktiver Nutzung sind API, Tests, Performance auf Android/iOS und Vergleichsrechnungen mit unabhängigen Referenzen zu prüfen.
 
-Zunächst wird nur ein isolierter Adapter-Prototyp mit Testfällen erstellt. Die Bibliothek wird nicht direkt aus Widgets oder UI-Code aufgerufen. Version und Datenbestand werden festgehalten, damit Ergebnisse reproduzierbar bleiben. Hevelius bleibt die gewählte erste Option; bei nicht lösbaren Anforderungen bleibt Ephemera die Rückfalloption.
+Der Adapter berechnet Sonne, Mond, Merkur bis Pluto, mittleren/wahren Mondknoten sowie mittlere/osculierende Lilith und liefert ASC/MC. Rückläufigkeit wird aus der Längengeschwindigkeit abgeleitet. Die Engine erhält ein bereits geöffnetes `Ephemeris`-Objekt; `fromSpkFilePath` öffnet eine lokale SPK-Datei on demand. Die JPL-Datei wird derzeit weder mitgeliefert noch automatisch heruntergeladen/kopiert. Die Bibliothek wird nicht direkt aus Widgets oder UI-Code aufgerufen. Version und Datenbestand werden festgehalten, damit Ergebnisse reproduzierbar bleiben. Ephemera bleibt Rückfalloption.
 
 ## Zeitzonen und Orte
 
@@ -105,4 +105,4 @@ Geburtsdatum, Uhrzeit und Ort sind persönliche Daten. Als Ausgangspunkt lokale 
 
 ## Status
 
-Die ersten Domain-/Application-Bausteine sind angelegt: Winkel-Normalisierung, Eingabe-/Ergebnisobjekte, Ephemeriden-Port und Anwendungsfall. Hevelius ist als erste Engine ausgewählt, aber noch nicht als Abhängigkeit eingebunden. Adapter, Häuserspitzen, Zeitzonen-/Geocoding-Adapter, Lizenzintegration und PDF-Bibliothek bleiben offene Aufgaben.
+Domain-/Application-Bausteine sowie Hevelius-Abhängigkeit und Adapter sind angelegt. Der Adapter benötigt eine lokal bereitgestellte JPL-SPK-Datei. Noch offen sind JPL-Datenbereitstellung/-Lizenzprüfung, Häuserspitzen, historische Zeitzonen-/Geocoding-Adapter, Lizenzintegration, Chart-Anbindung und PDF-Bibliothek.
