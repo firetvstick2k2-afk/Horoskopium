@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/profiles_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/radix_screen.dart';
 import 'widgets/radix_preview.dart';
 
@@ -64,6 +65,13 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Einstellungen',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            icon: const Icon(Icons.settings_outlined),
+          ),
           IconButton(
             tooltip: 'Profile',
             onPressed: () => Navigator.of(context).push(
