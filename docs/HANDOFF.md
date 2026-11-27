@@ -7,7 +7,7 @@
 
 ## 1. Verbindliche Arbeitsregeln
 
-1. Ausschließlich auf `development arbeiten.
+1. Ausschließlich auf `development` arbeiten.
 2. `main` niemals verändern, außer der Nutzer sagt ausdrücklich: **„Bitte Main überschreiben“**.
 3. Vor jeder Änderung bestehender Dateien aktuellen Inhalt und SHA von GitHub abrufen.
 4. Änderungen sauber und nachvollziehbar committen.
