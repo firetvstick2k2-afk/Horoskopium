@@ -20,23 +20,11 @@ class ChartCalculationResult {
   final String engineId;
   final String engineVersion;
   final DateTime calculatedAtUtc;
-
-  /// Ecliptic longitude of the Ascendant, when calculated by the engine.
   final double? ascendantLongitudeDegrees;
-
-  /// Ecliptic longitude of the Midheaven (MC), when calculated by the engine.
   final double? midheavenLongitudeDegrees;
-
-  /// Ecliptic longitudes of house cusps 1–12, when available.
   final List<double> houseCuspsDegrees;
-
-  /// User-requested house system (for example, "Placidus").
   final String? requestedHouseSystem;
-
-  /// Actually calculated house system (may differ after a polar fallback).
   final String? effectiveHouseSystem;
-
-  /// True when Placidus was undefined and Whole Sign was used instead.
   final bool usedPolarHouseFallback;
 
   bool get isValid =>
