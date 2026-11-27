@@ -170,10 +170,8 @@ class HouseCalculator {
     var rightAscension = ramc + offset;
 
     for (var iteration = 0; iteration < _maxIterations; iteration++) {
-      final declination = math.atan2(
-        math.sin(obliquity) * math.sin(rightAscension),
-        math.cos(obliquity),
-      );
+      final declination =
+          _rightAscensionToDeclination(rightAscension, obliquity);
       final tangentProduct = math.tan(latitude) * math.tan(declination);
       if (!tangentProduct.isFinite || tangentProduct.abs() >= 1) {
         throw StateError('Placidus cusp is circumpolar.');
