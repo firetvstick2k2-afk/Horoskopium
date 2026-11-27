@@ -40,6 +40,8 @@ class EphemerisRuntime {
   Future<EphemerisEngine?>? _restoreFuture;
   Future<EphemerisEngine>? _activationFuture;
   String? _activationKernelId;
+  String? _activePath;
+  final Set<String> _mutatingKernelIds = {};
 
   String? get activeKernelId => _activeKernelId;
   EphemerisEngine? get activeEngine => _activeEngine;
@@ -82,6 +84,44 @@ class EphemerisRuntime {
     }
   }
 
+  /// Returns the verified local path without revalidating an open SPK file.
+  Future<String?> installedPathFor(EphemerisKernel kernel) async {
+    final catalogKernel = _catalogKernel(kernel);
+    if (_activeKernelId == kernel.id) return _activePath;
+    if (_activationKernelId == kernel.id) {
+      throw StateError('Diese Ephemeride wird gerade aktiviert.');
+    }
+    return _downloads.installedPath(catalogKernel);
+  }
+
+  /// Downloads a kernel only when it is not active or being opened.
+  Future<String> downloadKernel(
+    EphemerisKernel kernel, {
+    required void Function(int received, int total) onProgress,
+  }) async {
+    final catalogKernel = _catalogKernel(kernel);
+    if (_activeKernelId == kernel.id || _activationKernelId == kernel.id) {
+      throw StateError('Eine aktive oder gerade geöffnete Ephemeride darf nicht ersetzt werden.');
+    }
+    if (!_mutatingKernelIds.add(kernel.id)) {
+      throw StateError('Für diese Ephemeride läuft bereits eine Dateiaktion.');
+    }
+    try {
+      return await _downloads.download(catalogKernel, onProgress: onProgress);
+    } finally {
+      _mutatingKernelIds.remove(kernel.id);
+    }
+  }
+
+  EphemerisKernel _catalogKernel(EphemerisKernel kernel) {
+    final matches = _kernels.where((item) =>
+        item.id == kernel.id && item.fileName == kernel.fileName);
+    if (matches.isEmpty) {
+      throw ArgumentError.value(kernel.id, 'kernel', 'Unknown ephemeris kernel.');
+    }
+    return matches.first;
+  }
+
   /// Activates a verified, locally stored kernel exactly once.
   ///
   /// A different kernel cannot be activated after one has been opened because
@@ -97,6 +137,10 @@ class EphemerisRuntime {
         'Eine andere Ephemeride ist bereits aktiv. '
         'Bitte Horoskopium neu starten, um den Kernel zu wechseln.',
       );
+    }
+
+    if (_mutatingKernelIds.contains(kernel.id)) {
+      throw StateError('Für diese Ephemeride läuft gerade eine Dateiaktion.');
     }
 
     final pending = _activationFuture;
@@ -141,6 +185,7 @@ class EphemerisRuntime {
     final engine = _engineFactory(path);
     _activeEngine = engine;
     _activeKernelId = kernel.id;
+    _activePath = path;
     restoreError = null;
 
     if (persistSelection) {
@@ -158,6 +203,7 @@ class EphemerisRuntime {
 
   /// Deletes only an inactive kernel. The guard is enforced below the UI.
   Future<void> deleteKernel(EphemerisKernel kernel) async {
+    final catalogKernel = _catalogKernel(kernel);
     final restoring = _restoreFuture;
     if (restoring != null) await restoring;
     if (_activeKernelId == kernel.id ||
@@ -167,7 +213,14 @@ class EphemerisRuntime {
         'nicht gelöscht werden. Bitte zuerst die App neu starten.',
       );
     }
-    await _downloads.delete(kernel);
+    if (!_mutatingKernelIds.add(kernel.id)) {
+      throw StateError('Für diese Ephemeride läuft bereits eine Dateiaktion.');
+    }
+    try {
+      await _downloads.delete(catalogKernel);
+    } finally {
+      _mutatingKernelIds.remove(kernel.id);
+    }
   }
 
   static Future<String?> _loadSavedSelection() async {
