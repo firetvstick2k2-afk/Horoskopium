@@ -47,8 +47,18 @@ class EphemerisKernel {
 }
 
 class EphemerisDownloadService {
+  EphemerisDownloadService({
+    Future<Directory> Function()? supportDirectoryProvider,
+    HttpClient Function()? httpClientFactory,
+  })  : _supportDirectoryProvider =
+            supportDirectoryProvider ?? getApplicationSupportDirectory,
+        _httpClientFactory = httpClientFactory ?? HttpClient.new;
+
+  final Future<Directory> Function() _supportDirectoryProvider;
+  final HttpClient Function() _httpClientFactory;
+
   Future<File> _fileFor(EphemerisKernel kernel) async {
-    final root = await getApplicationSupportDirectory();
+    final root = await _supportDirectoryProvider();
     final directory = Directory('${root.path}/ephemerides');
     await directory.create(recursive: true);
     return File('${directory.path}/${kernel.fileName}');
@@ -89,7 +99,8 @@ class EphemerisDownloadService {
   }) async {
     final target = await _fileFor(kernel);
     final temporary = File('${target.path}.part');
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
+    final client = _httpClientFactory()
+      ..connectionTimeout = const Duration(seconds: 30);
     try {
       final request = await client.getUrl(Uri.parse(kernel.url));
       request.headers.set(HttpHeaders.acceptEncodingHeader, 'identity');
