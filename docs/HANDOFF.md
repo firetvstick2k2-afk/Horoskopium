@@ -171,3 +171,12 @@ Astrologische Deutungen sind symbolische/traditionelle Interpretationen und kein
 - `EphemerisRuntime` verwendet jetzt eine bereits aktive Engine direkt und wartet bei einem parallel laufenden Aktivierungsvorgang auf genau dieselbe Future. Dadurch gewinnt immer die bereits geöffnete Engine; es wird keine zweite SPK-Instanz erzeugt.
 - Zwei Regressionstests ergänzen die sieben bisherigen Runtime-Tests: Restore nach Aktivierung und Restore während einer laufenden Aktivierung. CI für diesen Folgecommit steht noch aus.
 - Nächster Schritt nach grüner CI: Runtime am App-Root als einzige Instanz bereitstellen und anschließend die Einstellungsseite auf Runtime-gesteuerte Aktivierung/Löschsperre umstellen. Keine Radix-Berechnung ohne erfolgreich aktivierte und validierte Ephemeride.
+
+
+### App-Root- und Einstellungsintegration (27.11.2026)
+
+- Nach CI #98 (`46070790882`, Commit `7eeaa9d4`) wird `EphemerisRuntime` im App-Einstieg genau einmal erzeugt. Die gespeicherte Kernel-Auswahl wird vor `runApp` wiederhergestellt; dieselbe Runtime-Instanz wird an den Home-Screen und die Einstellungsseite weitergereicht.
+- Die Einstellungsseite verwendet keinen eigenen Download-Service mehr. Statusabfragen, Downloads, Aktivierung und Löschung laufen über den zentralen Runtime-Owner.
+- UI unterscheidet „Lokal gespeichert“ von „Aktiv für Berechnungen“. Der aktive Kernel kann nicht gelöscht oder ersetzt werden; ein anderer Kernel kann erst nach App-Neustart aktiviert werden. Runtime-seitige Schutzprüfungen bleiben maßgeblich, nicht die UI allein.
+- Runtime merkt sich den Pfad der geöffneten Datei und führt für den aktiven Kernel keine erneute Dateisystem-Recovery-Prüfung aus, die den offenen SPK-Handle gefährden könnte. Gleichzeitige Dateiaktionen und Aktivierung desselben Kernels werden gegeneinander gesperrt.
+- Widget-Test an die injizierbare App-Runtime angepasst. CI für diese Integration steht noch aus. Keine reale Geräteprüfung oder echte JPL-Download-/Positionsvalidierung behauptet.
