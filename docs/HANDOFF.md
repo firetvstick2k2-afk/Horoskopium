@@ -3,10 +3,10 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter Code-Commit:** `f398976` (Angle-Normalisierung)  
+**Letzter Code-Commit:** `f3fd51a` (Ephemeriden-Download-Einstellungen und Fortschrittsanzeige)  
 **Letzter Test-Commit:** `d3f9c25` (Whole-Sign-Grenz- und Invarianztests)  
 **Letzter Dokumentations-Commit:** wird mit dieser Aktualisierung gesetzt.  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter sowie Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf **45949515533** auf Commit `04a5a16` ist vollständig erfolgreich: Android und iOS haben Analyze, Tests und Plattform-Builds bestanden; Android-Artefakt wurde hochgeladen. Damit sind Whole-Sign-Grenz- und Invarianztests sowie die vorherigen erweiterten Placidus-Referenztests CI-seitig bestätigt. JPL-SPK-Datei und vollständige fachliche Freigabe von Placidus bleiben offen.
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter sowie Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf **45949515533** auf Commit `04a5a16` ist vollständig erfolgreich: Android und iOS haben Analyze, Tests und Plattform-Builds bestanden; Android-Artefakt wurde hochgeladen. Damit sind Whole-Sign-Grenz- und Invarianztests sowie die vorherigen erweiterten Placidus-Referenztests CI-seitig bestätigt. JPL-SPK-Datei ist noch nicht auf einem realen Gerät heruntergeladen/validiert; die erste Downloadverwaltung ist implementiert. Vollständige fachliche Freigabe von Placidus bleibt offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -61,9 +61,10 @@
 - Hevelius `hevelius_ephemeris: ^0.1.2`; Dart SDK-Untergrenze `>=3.13.7`.
 - Adapter `lib/infrastructure/ephemeris/hevelius_ephemeris_engine.dart` berechnet Sonne, Mond, Planeten bis Pluto, Mondknoten, Lilith, Rückläufigkeit, ASC/MC und übergibt ARMC/wahre Ekliptikschiefe an die Hausberechnung.
 - **JPL-SPK-Datei fehlt:** Sie ist weder im Repository noch im App-Bundle und wird nicht automatisch bereitgestellt. Ohne lokale SPK-Datei gibt es keine echten Planetenpositionen.
-- **Datenstrategie (Recherche 27.11.2026):** Als erste mobile Standarddatei ist `de440s.bsp` vorgesehen (ca. 31–32 MB, Abdeckung 1849–2150). JPL/NAIF führt sie im offiziellen SPK-Verzeichnis. Hevelius 0.1.2 nennt DE440s als Standard-Download; die Paket-Dokumentation beschreibt SHA-256-Prüfung und dateibasiertes Öffnen ohne komplettes Einlesen in den RAM. DE442 (ca. 114–115 MB, 1550–2650) bleibt eine spätere Option für erweiterte historische Abdeckung; DE441 (ca. 3,3 GB) ist für die mobile Standardinstallation ausdrücklich ungeeignet.
+- **Datenstrategie (Recherche 27.11.2026):** Für die App werden zwei direkt ladbare Pakete angeboten: `de440s.bsp` (ca. 32 MB, 1849–2150) als kompakte Option und `de442.bsp` (ca. 115 MB, 1550–2650) als empfohlene Standardoption. Die aktuelle Hevelius-API-Dokumentation empfiehlt DE442 für allgemeine Nutzung und bestätigt die größere Abdeckung; der Paket-Downloader enthält feste SHA-256-Prüfsummen für beide Dateien. DE441 (ca. 3,3 GB, −13.200 bis +17.191) bleibt eine spätere Spezialoption und wird nicht im ersten mobilen Downloadmanager angeboten.
 - **Bereitstellungsprinzip:** SPK nicht ins Git-Repository oder direkt ins APK/IPA committen/bundlen. Download nur nach ausdrücklicher Nutzeraktion bzw. beim erstmaligen Setup mit klarer Anzeige von Dateigröße, Abdeckung, WLAN/Mobilfunk und Speicherbedarf; Download in temporäre Datei, Integritätsprüfung anhand eines vertrauenswürdig eingebetteten SHA-256-Werts, erst danach atomar in den finalen App-Datenpfad übernehmen. Vorhandene gültige Datei weiterverwenden; bei Abbruch/Fehler keine beschädigte Datei als verfügbar markieren. Offline-Nutzung nach erfolgreichem Download.
-- **Noch nicht implementiert/abgesichert:** Android-/iOS-Dateipfad und Berechtigungen, HTTP-Download mit Resume/Retry, SHA-256-Validierung im App-Code, Dateiversions-/Schema-Metadaten, Speicherplatzprüfung, Update-/Löschverhalten und UI-Setup. Erst nach Klärung dieser Punkte den Downloader bauen.
+- **Erster Implementierungsschritt (27.11.2026):** `lib/services/ephemeris_download_service.dart` enthält einen nativen HTTPS-Download für DE440s/DE442 in den App-Support-Pfad (`path_provider`), eine temporäre `.part`-Datei, Content-Length-Prüfung, SHA-256-Prüfung mit fest im App-Code verankerten Prüfsummen und Übernahme erst nach erfolgreicher Prüfung. Bereits vorhandene Dateien werden bei jedem Statuscheck erneut gehasht; ungültige Dateien werden entfernt. `lib/screens/settings_screen.dart` bietet unter Einstellungen beide Pakete, Abdeckungszeitraum, ungefähre Größe, Installationsstatus, Fortschrittsanzeige und Löschen. Der Startbildschirm hat einen Einstellungen-Button. Dependencies `crypto` und `path_provider` wurden ergänzt. Ein Metadaten-Test wurde angelegt.
+- **Noch offen:** Resume/Fortsetzen, expliziter Abbruch, Retry-UX, Speicherplatzprüfung, Versions-/Manifestmodell, atomarer Austausch einer bereits installierten Version mit Rollback, Hintergrunddownload, tatsächliche Installation und Hevelius-Laufzeitintegration mit der heruntergeladenen Datei. Die UI markiert Dateien als installiert, sie werden aber noch nicht automatisch vom Radix-Use-Case geöffnet. Keine reale Android-/iOS-Geräteprüfung bisher. CI nach dem letzten Push ist noch ausstehend.
 - **Lizenz-/Attribution:** JPL/NAIF stellt das SPK-Verzeichnis öffentlich bereit und bittet um angemessene Quellenangabe/Referenzierung. Das ist keine pauschale Lizenzfreigabe für sämtliche Daten, Bibliotheken oder Drittinhalte. Hevelius-Code hat Apache-2.0; Paket- und Dritt-Datenhinweise/NOTICE müssen mitgeliefert werden. Fixsternwerte mit ESA-NC-Klausel bleiben ausgeschlossen. Als geplante App-Attribution: „Planetary ephemeris: JPL DE440s (NASA/JPL NAIF); calculations by Hevelius.“ Vor kommerzieller Veröffentlichung die konkreten JPL-Datenbedingungen und alle Notices nochmals rechtlich prüfen.
 - Chiron und Asteroiden sind noch nicht im Adapter eingebunden.
 - Hevelius-Fixsternwerte mit ESA CC BY-NC 3.0 IGO bis zur Klärung kommerzieller Rechte nicht verwenden.
@@ -129,9 +130,10 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. SPK-Downloader/Installer für DE440s entwerfen und implementieren: Plattformpfade, HTTPS-Download, SHA-256-Integrität, temporäre Datei/atomarer Abschluss, Abbruch/Retry und Offline-Status.
-2. Echte DE440s-Datei auf Android und iOS installieren und Hevelius gegen dokumentierte JPL-Horizons-Referenzfälle testen.
-3. Placidus weiterhin fachlich prüfen und reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
+1. Den begonnenen SPK-Downloadmanager vervollständigen: Resume/Retry/Abbruch, Speicherplatzprüfung, sicheren Austausch/Recovery und Tests.
+2. Die heruntergeladene DE440s-/DE442-Datei an die Hevelius-Engine und den Radix-Use-Case anbinden.
+3. Echte SPK-Dateien auf Android und iOS installieren und Hevelius gegen dokumentierte JPL-Horizons-Referenzfälle testen.
+4. Placidus weiterhin fachlich prüfen und reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
 5. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie.
 6. TSL1-Verifikation aus Topf Secret portieren; Generator nicht ändern.
 7. Profile-Datenschutz, Export/Import und Migration verbessern.
