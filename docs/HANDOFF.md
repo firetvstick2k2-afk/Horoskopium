@@ -3,10 +3,10 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter Code-Commit vor der aktuellen Handoff-Aktualisierung:** `de20325` (verifizierter SPK-Dateiaustausch mit Backup und Wiederherstellung).  
-**Letzter Test-Commit:** `f11e4e6` (Kernel-Katalog und Prüfsummen-Metadaten).  
-**Letzter Handoff-Commit vor dieser Aktualisierung:** `9f0c774`.  
-**Letzter vollständig erfolgreicher CI-Lauf:** **45951108204** auf Commit `9f0c774`; Android und iOS haben Analyze, Tests und Plattform-Builds bestanden, das Android-APK wurde hochgeladen.  
+**Letzter Code-Commit:** `48de9a7` (injektierbare Speicher-/HTTP-Abhängigkeiten für reproduzierbare Downloader-Tests).  
+**Letzter Test-Commit:** `be3d176` (vier Wiederherstellungstests für unterbrochene SPK-Dateiaustausche).  
+**Letzter vollständig erfolgreicher CI-Lauf vor diesen neuen Änderungen:** **45952385504** auf Commit `06c12cdc`; Android und iOS haben Analyze, Tests und Plattform-Builds bestanden, das Android-APK wurde hochgeladen.  
+**CI für `48de9a7`/`be3d176`:** nach Push noch ausstehend.  
 **Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter, Placidus-/Whole-Sign-Berechnung und erster JPL-Downloadmanager sind integriert. DE440s/DE442 können heruntergeladen und lokal per SHA-256 geprüft werden. Die SPK-Datei ist noch nicht mit dem Radix-Use-Case verbunden und wurde noch nicht auf realen Geräten validiert. Placidus bleibt trotz umfangreicher mathematischer Referenztests bis zur End-to-End-Prüfung fachlich nicht freigegeben.
 
 ## 1. Verbindliche Arbeitsregeln
@@ -129,14 +129,15 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - **Dateiaustausch (Commit `de20325`):** Eine bereits vorhandene gültige Datei wird vor dem Austausch in eine `.bak`-Datei umbenannt. Scheitert die Übernahme der geprüften neuen Datei, wird die vorherige Version zurückbenannt. Beim nächsten Statuscheck wird ein unterbrochener Austausch anhand der Prüfsumme wiederhergestellt; eine gültige Backup-Datei wird bevorzugt erhalten. Das ist eine Recovery-Absicherung, noch kein vollständiges transaktionales Dateisystemprotokoll.
 - **Wichtige Hevelius-Lebensdauer-Einschränkung:** `openSpkFile(path)` öffnet intern eine `RandomAccessFile` synchron und hält sie laut Paketdokumentation bis zum Programmende offen. Es gibt in der geprüften API keinen Close-Pfad. Deshalb darf eine einmal von der Engine geöffnete SPK-Datei während der Engine-Laufzeit nicht gelöscht, ersetzt oder verschoben werden. Die spätere Integration braucht einen klaren App-weiten Engine-/Datei-Lebenszyklus; Einstellungen dürfen aktive Kernel nicht entfernen. Ein Neustart der App kann als sicherer Zeitpunkt für Kernelwechsel/Löschung dienen.
 - Die Einstellungsseite zeigt derzeit „Lokal gespeichert“ und ermöglicht Download/Löschen. Es gibt noch keine Auswahl eines aktiven Kernels, keine Engine-Factory/Provider-Integration und keine Verbindung von `CalculateRadix` mit einer geladenen SPK-Datei.
-- **CI:** Lauf **45951108204** auf Commit `9f0c774` ist vollständig erfolgreich: Android Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS Analyze, Tests und unsigned Build. Der nachfolgende Code-Commit `de20325` ist durch diesen Lauf noch nicht abgedeckt; dafür muss der nächste CI-Lauf erfolgreich abgeschlossen werden.
+- **CI:** Lauf **45952385504** auf Commit `06c12cdc` ist vollständig erfolgreich: Android Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS Analyze, Tests und unsigned Build. Dieser Commit enthält auch den Code aus `de20325`; der separate Lauf `45952337375` für `de20325` wurde durch den nachfolgenden Push abgebrochen. Damit ist `de20325` über den erfolgreichen Nachfolge-Commit CI-abgedeckt. Die danach ergänzten Testability-/Recovery-Änderungen `48de9a7` und `be3d176` warten noch auf ihren eigenen CI-Lauf.
+- **Testbarkeit (27.11.2026):** `EphemerisDownloadService` akzeptiert jetzt optional einen Support-Directory-Provider und eine `HttpClient`-Factory. Die Standardwerte bleiben `getApplicationSupportDirectory` und `HttpClient.new`; damit ändert sich das normale App-Verhalten nicht. Vier neue isolierte Dateisystemtests prüfen: Wiederherstellung einer gültigen `.bak` bei fehlendem Ziel, Wiederherstellung über einer beschädigten Zieldatei, Beibehaltung einer gültigen Zieldatei mit Entfernen eines veralteten Backups sowie Entfernen ungültiger Dateien, wenn kein gültiges Backup existiert. Die Tests liegen in `test/infrastructure/ephemeris_download_recovery_test.dart`; CI steht noch aus.
 - Keine reale Android-/iOS-Geräteprüfung und kein tatsächlicher JPL-SPK-Download auf einem Gerät bisher. Keine Planetenberechnung als produktionsbereit bezeichnen, bevor Download, Öffnen, Abdeckung und astronomische Referenzfälle auf beiden Plattformen validiert wurden.
 - JPL/NAIF-Datenbedingungen und alle Drittanbieter-Notices vor kommerzieller Veröffentlichung erneut prüfen. Hevelius-Code ist Apache-2.0. Fixsternwerte mit ESA CC BY-NC 3.0 IGO bleiben bis zur Klärung kommerzieller Rechte ausgeschlossen.
 - Chiron und Asteroiden sind im Horoskopium-Adapter noch nicht eingebunden.
 ## 5. Nächste Schritte
 
-1. CI-Lauf für Commit `de20325` prüfen; bei Erfolg den Dateiaustausch als CI-bestätigt dokumentieren.
-2. Downloader weiter härten: Resume/Retry/Abbruch, Speicherplatzprüfung und automatisierte Tests für Wiederherstellung/Dateiaustausch.
+1. CI-Lauf für die neuen Commits `48de9a7` und `be3d176` prüfen; insbesondere die vier neuen Recovery-Tests müssen auf Android/iOS bestehen.
+2. Downloader weiter härten: automatisierte Download-/Checksum-/HTTP-Fehlertests, Resume/Retry/Abbruch und Speicherplatzprüfung.
 3. App-weiten Engine-/SPK-Lebenszyklus entwerfen (SPK-Datei bleibt nach `openSpkFile` bis Programmende geöffnet); erst danach Kernel-Auswahl und Radix-Use-Case sicher anbinden.
 4. Echte SPK-Dateien auf Android und iOS herunterladen/öffnen und Hevelius gegen dokumentierte JPL-Horizons-Referenzfälle testen.
 4. Placidus weiterhin fachlich prüfen und reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
