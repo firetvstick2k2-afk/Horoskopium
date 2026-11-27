@@ -26,6 +26,9 @@
 - Gestaltung: Pergament, Nachtblau und Gold; klassisch und gut lesbar.
 - Geplant: Radix, Synastrie/Composite, Transite, Aspekte, Häuser, Planeten, Elemente, Modalitäten, Mondknoten, Chiron, Lilith und PDF-Bericht.
 - Berechnung und astrologische Interpretation bleiben strikt getrennt.
+- Langfristiges Produktziel: Horoskopium soll nicht nur Horoskope berechnen, sondern daraus individuell zusammengestellte astrologische Analysen und professionell gestaltete PDF-Berichte erzeugen können. Dazu gehören später auswählbare Analyse-Module (z. B. Radix, Liebe/Beziehung, Business/Beruf, Geld, Transite, Solar-Return, Rückkehr-Analysen, Synastrie, Kinderhoroskop und weitere Spezialthemen) sowie ein konfigurierbarer Angebots-/Preiskatalog mit eigenen Beschreibungen, Preisen und Zeitumfängen samt PDF-Preisliste.
+- Zusätzlich ausdrücklich gewünscht: **Tierhoroskope für Haustiere** als eigener Analysebereich. Dafür ist ein eigenes Tier-Profil (Tierart, Name und – soweit bekannt – Geburtsdatum, Geburtszeit und Geburtsort) vorzusehen. Unbekannte oder ungenaue Geburtszeiten müssen transparent behandelt werden; keine scheinpräzisen Häuser/AC-Angaben ohne belastbare Zeit. Die astrologische Deutung bleibt als symbolisches Angebot gekennzeichnet.
+- Die vom Nutzer bereitgestellte fremde Preisliste (45-seitige PDF) dient ausschließlich als Funktions-/Umfangsinspiration. Keine Übernahme fremder Texte, Preise, Marken- oder Gestaltungselemente.
 
 ## 2a. Radix-/Chart-Design
 
