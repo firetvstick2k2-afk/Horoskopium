@@ -4,9 +4,9 @@
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
 **Letzter Code-Commit:** `f398976` (Angle-Normalisierung)  
-**Letzter Test-Commit:** `3fe0f97` (erweiterte Placidus-Referenztests)  
-**Letzter Produkt-/Dokumentations-Commit:** `a31853b`  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45946079434 ist vollständig erfolgreich: Android- und iOS-Analyze, Tests sowie Plattform-Builds bestanden. Die Placidus-Formeln für RA→ekliptikale Länge und RA→Deklination wurden korrigiert und unabhängig mit Swiss Ephemeris 2.10.03 verglichen. Zusätzliche Tests prüfen nun alle zwölf Hausspitzen in mehreren ARMC-/Breitenkonstellationen sowie knapp unter und exakt an der Polarkreisgrenze. CI-Lauf 45947700544 nach dem Handoff-Update ist vollständig erfolgreich. Für die jüngsten zusätzlichen Tests (Commit `3fe0f97`) läuft CI 45948518404 noch; der unmittelbar vorherige Produkt-Dokumentationslauf 45948408106 war beim letzten Abruf in Bearbeitung. JPL-Datendatei und vollständige fachliche Freigabe bleiben offen.
+**Letzter Test-Commit:** `d3f9c25` (Whole-Sign-Grenz- und Invarianztests)  
+**Letzter Dokumentations-Commit:** wird mit dieser Aktualisierung gesetzt.  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter sowie Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf **45948544685** auf Commit `2761dc3` ist vollständig erfolgreich: Android und iOS haben Analyze, Tests und Plattform-Builds bestanden; Android-Artefakt wurde hochgeladen. Damit sind auch die erweiterten Placidus-Referenztests aus Commit `3fe0f97` durch den nachfolgenden vollständigen CI-Lauf abgedeckt. Whole Sign wurde nun zusätzlich mit Grenzwerten, allen zwölf Zeichen und Invarianz gegenüber MC/ARMC/Standortparametern getestet; der CI-Lauf für diese neue Testergänzung steht noch aus. JPL-Datendatei und vollständige fachliche Freigabe der Häusersysteme bleiben offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -74,6 +74,15 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Ergebnis speichert gewünschtes und effektives System plus `usedPolarHouseFallback`.
 - Unbekannte Häusersysteme werden abgewiesen.
 
+### Whole-Sign-Prüfung (27.11.2026)
+
+- Regel unabhängig anhand der Definition geprüft: Haus 1 beginnt am Anfang des tropischen 30°-Zeichens, in dem die ekliptikale Länge des Aszendenten liegt; die folgenden Häuser beginnen jeweils 30° später.
+- Die Implementierung verwendet dafür `floor(ASC / 30) * 30` und normalisiert jede Spitze in den Bereich [0°, 360°). MC, ARMC, geografische Breite und Obliquität bestimmen bei Whole Sign nicht die Hausspitzen; sie bleiben Eingabeparameter der gemeinsamen Calculator-Schnittstelle und werden weiterhin auf gültige Werte geprüft.
+- Neue Regressionstests decken ASC genau auf 0°/30°/90°, knapp unter und über Zeichenwechseln sowie knapp unter 360° ab.
+- Zusätzlich werden alle zwölf möglichen aufsteigenden Zeichen durchlaufen und jeweils zwölf lückenlose 30°-Hausintervalle geprüft.
+- Invarianztest: identischer ASC mit unterschiedlichen MC-/ARMC-/Breiten-/Obliquitätswerten ergibt identische Whole-Sign-Spitzen. Tests prüfen außerdem System-Aliase und Ablehnung nicht normalisierter ASC-Werte.
+- Testergänzung in Commit `d3f9c25`; CI-Ergebnis ist nach dem Push noch abzuwarten. Diese Prüfungen bestätigen die Umsetzung der Whole-Sign-Geometrie, ersetzen aber keine End-to-End-Radixprüfung mit verifizierter Ephemeride.
+
 ### Test- und Prüfstatus
 
 - Die zuvor in diesem Dokument als behoben bezeichnete doppelte Initialisierung in `chart_calculation_result.dart` war im tatsächlichen HEAD `7943fae` weiterhin vorhanden. Die Dokumentation war an dieser Stelle falsch.
@@ -115,14 +124,14 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. CI-Lauf 45948518404 für die zusätzlichen Placidus-Referenztests abschließen und prüfen; anschließend weitere Rand-/Extremfälle und reale Radix-Stichproben validieren.
-3. Whole Sign gegen Referenzfälle testen.
-4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
-5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
-6. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie.
-7. TSL1-Verifikation aus Topf Secret portieren; Generator nicht ändern.
-8. Profile-Datenschutz, Export/Import und Migration verbessern.
-9. Radix-Chart, Aspekte, Interpretationen und PDF datengetrieben vervollständigen.
+1. CI-Lauf für Whole-Sign-Grenz- und Invarianztests (Commit `d3f9c25`) abschließen und prüfen.
+2. Placidus weiterhin fachlich prüfen und anschließend reale Radix-Stichproben gegen unabhängige Referenzen validieren; nicht vorzeitig freigeben.
+3. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
+4. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
+5. Historische Zeitzonen-/Sommerzeit-Auflösung und Geocoding/Koordinatenstrategie.
+6. TSL1-Verifikation aus Topf Secret portieren; Generator nicht ändern.
+7. Profile-Datenschutz, Export/Import und Migration verbessern.
+8. Radix-Chart, Aspekte, Interpretationen und PDF datengetrieben vervollständigen.
 
 ## 6. Fachlicher Hinweis
 
