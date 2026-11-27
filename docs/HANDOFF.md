@@ -44,9 +44,11 @@ Daraus folgt:
 
 ## 4. Aktueller technischer Stand
 
-- Flutter-Paketgrundlage angelegt.
-- Erster Startbildschirm mit klassischer Farbwelt angelegt.
-- Noch keine echte Geburtsdatenerfassung, Profile, Ephemeridenberechnung, Lizenzaktivierung oder PDF-Erzeugung.
+- Flutter-Paketgrundlage und erster Startbildschirm mit klassischer Farbwelt angelegt.
+- Geburtsprofile: Erstellen, Anzeigen und Löschen mit lokaler Speicherung via SharedPreferences implementiert.
+- Erfasste Felder: Name, Geburtsdatum, optionale Geburtszeit (HH:MM) und optionaler Geburtsort.
+- Die Profilangaben liegen lokal in App-Präferenzen; eine verschlüsselte Datenbank-/Backup-Lösung ist noch nicht umgesetzt.
+- Noch keine Ephemeridenberechnung, Lizenzaktivierung oder PDF-Erzeugung.
 - Android-/iOS-Plattformrunner müssen lokal einmalig erzeugt werden:
   `flutter create . --project-name horoskopium --platforms=android,ios`.
 - Es wurde in diesem Schritt kein Flutter-Build ausgeführt; Buildfähigkeit ist daher noch nicht bestätigt.
@@ -56,7 +58,7 @@ Daraus folgt:
 1. Flutter-Plattformrunner und CI-Build für Android/iOS einrichten.
 2. Topf Secret Quellcode zur TSL1-Prüfung lesen und Horoskopium-kompatible Dart-Prüfung planen.
 3. Lizenztest mit einem bestehenden, ausdrücklich bereitgestellten Testtoken; keine echten Kundentokens in GitHub einchecken.
-4. Geburtsprofile lokal und datenschutzfreundlich implementieren.
+4. Profil-Datenspeicherung später um robuste Migration, Export/Import und angemessenen Schutz erweitern.
 5. Ephemeriden-Engine und deren Lizenzbedingungen prüfen (Swiss Ephemeris: AGPL bzw. kommerzielle Lizenz beachten).
 6. Radix-Berechnung, Häuser, Aspekte und Chart-Wheel.
 7. Deutungsinhalte und PDF-Berichte.
