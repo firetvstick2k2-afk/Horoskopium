@@ -3,9 +3,9 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter Code-Commit:** 3fbe837155eb0c25e5c2d1f996a143f9590aad48  
-**Letzter Test-Commit:** 24191d4888747cab8c02a21bf7e350322b18ddc8  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45944214217 ist vollständig erfolgreich: Android-Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS-Analyze, Tests und unsigned Build bestanden. Bei der anschließenden unabhängigen Prüfung der Placidus-Koordinatentransformation wurde ein Richtungsfehler entdeckt und korrigiert: RA→ekliptikale Länge muss die inverse Koordinatentransformation verwenden. Code- und Referenztestkorrektur sind committed; deren CI-Prüfung steht noch aus. JPL-Datendatei und vollständige unabhängige Haus-Referenzfreigabe weiterhin offen.
+**Letzte Code-Commits:** `3fbe837`, `0249d1a`, `da1095d`  
+**Letzter Test-Commit:** `7512083`  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45944214217 ist vollständig erfolgreich: Android-Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS-Analyze, Tests und unsigned Build bestanden. Bei der unabhängigen Prüfung der Placidus-Geometrie wurden zwei Koordinatenfehler korrigiert: RA→ekliptikale Länge und RA→Deklination. Die korrigierte semi-arc-Iteration stimmt für mehrere Breiten und beide Hemisphären mit unabhängigen Swiss-Ephemeris-Referenzvektoren überein. Neue Regressionstests sind committed; CI-Prüfung steht noch aus. JPL-Datendatei und vollständige unabhängige Haus-Referenzfreigabe weiterhin offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -65,7 +65,7 @@
 Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzliche Abhängigkeit:
 - **Placidus** ist Standard. Vier Zwischenhäuserspitzen werden iterativ anhand der Teilung der tag-/nachtseitigen Halbkreisbögen in Rektaszension bestimmt.
 - **Whole Sign** ist Alternative; Haus 1 beginnt am Zeichenanfang des Aszendentenzeichens.
-- ASC/DSC, MC/IC und gegenüberliegende Spitzen werden als Achsen behandelt; Koordinatentransformation berücksichtigt die Ekliptikschiefe. Die Umrechnung der Zwischenhaus-Rektaszensionen in ekliptikale Länge verwendet nun die inverse Beziehung `lambda = atan2(sin(RA), cos(RA) * cos(epsilon))`.
+- ASC/DSC, MC/IC und gegenüberliegende Spitzen werden als Achsen behandelt; Koordinatentransformation berücksichtigt die Ekliptikschiefe. Die Umrechnung der Zwischenhaus-Rektaszensionen in ekliptikale Länge verwendet die inverse Beziehung `lambda = atan2(sin(RA), cos(RA) * cos(epsilon))`. Die Deklination aus RA wird korrekt über `delta = atan2(sin(epsilon) * sin(RA), cos(epsilon))` berechnet.
 - Bei mathematischer Polarkreisgrenze oder nicht lösbarer/circumpolarer Zwischenhausspitze wird transparent auf Whole Sign zurückgefallen.
 - Ergebnis speichert gewünschtes und effektives System plus `usedPolarHouseFallback`.
 - Unbekannte Häusersysteme werden abgewiesen.
@@ -86,9 +86,10 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Lauf **45943723699** (Commit `040b336`) bestätigt: Android- und iOS-Analyze erfolgreich. Beide Jobs scheiterten im Schritt `flutter test` am selben Widget-Fehler: `A RenderFlex overflowed by 25 pixels on the bottom`, verursacht durch die Text-/Icon-Column in `RadixPreview` bei Constraints von 96 × 96 px (`lib/widgets/radix_preview.dart:20`). Sieben andere Tests bestanden, darunter vier Angle-/HouseCalculator-Tests. Android-APK und iOS-Build wurden wegen des Testfehlers übersprungen.
 - Korrektur in Commit `b2fa38410f64f60198b4bb34209e5128dfb90e42`: Die Beschriftungs-Column in `RadixPreview` wird nur bei `size >= 150` gerendert. Bei der 96-px-Kachel auf dem Startbildschirm bleibt die Radix-Grafik ohne zu kleine Mittelbeschriftung erhalten.
 - CI-Lauf **45944214217** (HEAD `c41f875` mit obiger RadixPreview-Korrektur) vollständig erfolgreich: Android Analyze, Tests, Debug-APK und Upload erfolgreich; iOS Analyze, Tests und unsigned Build erfolgreich.
-- Unabhängige mathematische Prüfung fand danach einen Richtungsfehler in `_rightAscensionToLongitude`: Die bisherige Formel `atan2(sin(RA) * cos(epsilon), cos(RA))` bildet ekliptikale Länge fälschlich in die andere Richtung ab. Korrekt ist die inverse Transformation `atan2(sin(RA), cos(RA) * cos(epsilon))`, abgeleitet aus `RA = atan2(sin(lambda) * cos(epsilon), cos(lambda))`. Bei ARMC 0°, Breite 0° und epsilon 23.4391667° ergeben die vier Zwischenhausspitzen nun 32.1812°, 62.0894°, 117.9106° und 147.8188° statt der vorher fälschlich erwarteten 27.9106°, 57.8188°, 122.1812° und 152.0894°.
-- Referenzabgleich: Swiss Ephemeris `swehouse.c` verwendet für die Umrechnung RA→Ekliptik die `Asc1`/`Asc2`-Transformation; Quelle zur mathematischen Gegenprüfung: https://github.com/astrotools/SwissEphemeris/blob/master/swisseph/swehouse.c (nicht als Runtime-Abhängigkeit eingebunden).
-- Codekorrektur committed in `3fbe837155eb0c25e5c2d1f996a143f9590aad48`; korrigierte Äquator-Referenztests committed in `24191d4888747cab8c02a21bf7e350322b18ddc8`. **CI-Prüfung dieser letzten Änderungen steht noch aus.**
+- Unabhängige mathematische Prüfung fand zwei Fehler im bisherigen Placidus-Solver. Erstens war `_rightAscensionToLongitude` in die falsche Richtung transformiert: Korrekt ist `atan2(sin(RA), cos(RA) * cos(epsilon))`, abgeleitet aus `RA = atan2(sin(lambda) * cos(epsilon), cos(lambda))`. Zweitens war die Deklination aus RA fälschlich als `asin(sin(RA) * sin(epsilon))` berechnet. Korrekt ist `atan2(sin(epsilon) * sin(RA), cos(epsilon))`, entsprechend `tan(delta) = tan(epsilon) * sin(RA)`.
+- Referenzabgleich mit Swiss Ephemeris 2.10.03 (`swe.houses_armc`, Placidus) und dem unabhängigen Quellcode `swehouse.c` (`Asc1`/`Asc2`): https://github.com/astrotools/SwissEphemeris/blob/master/swisseph/swehouse.c. Swiss Ephemeris wird ausschließlich als Referenz, nicht als Runtime-Abhängigkeit verwendet.
+- Die vier Zwischenhausspitzen stimmen nach beiden Korrekturen in den geprüften Fällen auf < 1e-6° mit den unabhängigen Referenzwerten überein: ARMC 0°/Breite 0°/ε 23.4391667°; ARMC 340°/48.4° N; ARMC 150°/33.9° S; ARMC 20°/60° N. Für den Äquatorfall lauten die vier Werte 32.1812349°, 62.0894279°, 117.9105721° und 147.8187651°.
+- Codekorrekturen: `3fbe837` (RA→Länge), `0249d1a` und `da1095d` (RA→Deklination und Zentralisierung). Regressionstests für Äquator, mittlere nördliche Breite, südliche Hemisphäre und 60° N in Commit `7512083`. **CI-Prüfung dieser letzten Änderungen steht noch aus.**
 - Ältere Placidus-Korrektur-Commits: `4a212a7f3ce6d950b78a84ff986ba06d29b49caf` (Projektion/Polar-Fallback) und `3fd0b2f9806deb24c79f724b283dc6da29c889c5` (numerischer Äquator-Test).
 - **Placidus ist ausdrücklich NICHT fachlich freigegeben:** unabhängige vollständige Referenzvektoren (z. B. Swiss-Ephemeris-`swe_houses_armc`) und reale Radix-Stichproben fehlen. Swiss Ephemeris ist nur Vergleichsreferenz, keine Runtime-Abhängigkeit.
 - Vor Freigabe mehrere Breitengrade (Äquator, mittlere und hohe Breiten, beide Hemisphären), mehrere ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge, Gegenüberliegende und Polargrenzfälle unabhängig vergleichen.
@@ -102,8 +103,8 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. Neuen CI-Lauf nach den RA→Ekliptik-Korrekturen (`3fbe837`/`24191d4`) vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
-2. Placidus gegen unabhängige Referenzwerte und mehrere Breitengrade/ARMC-Werte validieren; insbesondere Iterationsformel, nördliche/südliche Hemisphäre und alle zwölf Spitzen vergleichen.
+1. Neuen CI-Lauf nach den Placidus-Korrekturen (`3fbe837`, `0249d1a`, `da1095d`, `7512083`) vollständig prüfen. Sicherstellen, dass Analyze, Tests sowie Android-/iOS-Builds tatsächlich erfolgreich sind.
+2. Placidus weiter gegen unabhängige Referenzwerte prüfen; zusätzliche ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge und Polargrenzfälle vergleichen.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
 5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
