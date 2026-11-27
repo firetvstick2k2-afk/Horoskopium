@@ -69,11 +69,11 @@ Die ausgewählte Abhängigkeit **hevelius_ephemeris 0.1.2** (Apache-2.0) ist in 
 - Reines Dart ohne native Bibliotheken; Paketmetadaten weisen Android/iOS aus.
 - Berechnet Sonne, Mond, Planeten bis Pluto, Mondknoten und Lilith; Adapter liefert Rückläufigkeit sowie ASC/MC.
 - Stellt ARMC und wahre Ekliptikschiefe für die Hausgeometrie bereit.
-- JPL-SPK-Dateien sind nicht im Paket enthalten. DE440s ca. 32 MB (1849–2150), DE442 ca. 115 MB (1550–2650); Datenbereitstellung und Nutzungs-/Attributionsbedingungen sind noch zu klären.
+- JPL-SPK-Dateien sind nicht im Paket enthalten. DE440s ca. 32 MB (1849–2150), DE442 ca. 115 MB (1550–2650); die Hevelius-API empfiehlt DE442 als allgemeine Standarddatei. DE441 (ca. 3,3 GB; −13.200 bis +17.191) bleibt eine mögliche spätere Spezialoption.
 - Paket 0.1.x ist jung. Tests, Performance und unabhängige Referenzvergleiche sind vor Produktivnutzung erforderlich.
 - 22 mitgelieferte Fixstern-Daten enthalten Hipparcos-Werte unter ESA CC BY-NC 3.0 IGO; kommerzielle Nutzung ist ungeklärt. Bis zur Klärung nicht kommerziell ausliefern.
 
-Der Adapter benötigt eine lokal bereitgestellte JPL-SPK-Datei. Er berechnet derzeit Sonne, Mond, Merkur bis Pluto, mittleren/wahren Mondknoten, mittlere/osculierende Lilith und Rückläufigkeit. Chiron und Asteroiden sind noch nicht angebunden. `fromSpkFilePath` öffnet eine lokale SPK-Datei on demand. Ohne diese Datendatei ist keine echte Planetenberechnung möglich.
+Der Adapter benötigt eine lokal bereitgestellte JPL-SPK-Datei. Ein erster Downloadmanager liegt in `lib/services/ephemeris_download_service.dart`; die Einstellungsoberfläche liegt in `lib/screens/settings_screen.dart`. Der Nutzer kann DE440s oder DE442 in den App-Support-Pfad laden. HTTPS, temporäre `.part`-Datei und SHA-256-Prüfung sind umgesetzt. Die Datei ist noch nicht an den Radix-Use-Case angebunden; Resume/Retry/Abbruch, Speicherplatzprüfung und Gerätevalidierung fehlen. Er berechnet derzeit Sonne, Mond, Merkur bis Pluto, mittleren/wahren Mondknoten, mittlere/osculierende Lilith und Rückläufigkeit. Chiron und Asteroiden sind noch nicht angebunden. `fromSpkFilePath` öffnet eine lokale SPK-Datei on demand. Ohne diese Datendatei ist keine echte Planetenberechnung möglich.
 
 ### Häusersysteme
 
