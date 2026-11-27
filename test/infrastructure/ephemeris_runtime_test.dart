@@ -80,6 +80,47 @@ void main() {
       expect(opens, 1);
     });
 
+    test('restore after activation reuses the already-open engine', () async {
+      var opens = 0;
+      final runtime = _runtime(
+        downloads,
+        [firstKernel, secondKernel],
+        loadSelection: () async => 'first',
+        engineFactory: (_) {
+          opens++;
+          return _FakeEngine();
+        },
+      );
+
+      final activated = await runtime.activate(firstKernel);
+      final restored = await runtime.restore();
+
+      expect(identical(restored, activated), isTrue);
+      expect(identical(runtime.activeEngine, activated), isTrue);
+      expect(opens, 1);
+    });
+
+    test('restore during activation waits for the same engine open', () async {
+      var opens = 0;
+      final runtime = _runtime(
+        downloads,
+        [firstKernel, secondKernel],
+        loadSelection: () async => 'first',
+        engineFactory: (_) {
+          opens++;
+          return _FakeEngine();
+        },
+      );
+
+      final activation = runtime.activate(firstKernel);
+      final restoration = runtime.restore();
+      final results = await Future.wait([activation, restoration]);
+
+      expect(identical(results[0], results[1]), isTrue);
+      expect(runtime.activeKernelId, 'first');
+      expect(opens, 1);
+    });
+
     test('rejects switching kernels after one has been opened', () async {
       var opens = 0;
       final runtime = _runtime(
