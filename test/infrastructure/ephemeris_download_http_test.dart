@@ -144,6 +144,36 @@ void main() {
       expect(await File('${target.path}.bak').exists(), isFalse);
     });
 
+    test('restores the previous file when verified promotion fails', () async {
+      final installedDirectory =
+          Directory('${temporaryDirectory.path}/ephemerides');
+      await installedDirectory.create();
+      final target = File('${installedDirectory.path}/fixture.bsp');
+      await target.writeAsBytes(expectedBytes);
+
+      service = EphemerisDownloadService(
+        supportDirectoryProvider: () async => temporaryDirectory,
+        fileRenamer: (source, targetPath) {
+          if (source.path.endsWith('.part')) {
+            throw FileSystemException('Simulated promotion failure', source.path);
+          }
+          return source.rename(targetPath);
+        },
+      );
+      final kernel = await serve();
+      final partial = File('${target.path}.part');
+      final backup = File('${target.path}.bak');
+
+      await expectLater(
+        service.download(kernel, onProgress: (_, __) {}),
+        throwsA(isA<FileSystemException>()),
+      );
+
+      expect(await target.readAsBytes(), expectedBytes);
+      expect(await partial.exists(), isFalse);
+      expect(await backup.exists(), isFalse);
+    });
+
     test('rejects a checksum mismatch and preserves an existing valid file',
         () async {
       final installedDirectory =
