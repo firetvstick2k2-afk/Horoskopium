@@ -3,9 +3,10 @@
 **Stand:** 27.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter Code-Commit:** `f398976`  
-**Letzte Test-Commits:** `51e86a9`, `45dfcb1`  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45946079434 ist vollständig erfolgreich: Android- und iOS-Analyze, Tests sowie Plattform-Builds bestanden. Die Placidus-Formeln für RA→ekliptikale Länge und RA→Deklination wurden korrigiert und unabhängig mit Swiss Ephemeris 2.10.03 verglichen. Zusätzliche Tests prüfen nun alle zwölf Hausspitzen in mehreren ARMC-/Breitenkonstellationen sowie knapp unter und exakt an der Polarkreisgrenze. CI für die jüngsten Test- und Rundungs-Korrekturen steht noch aus. JPL-Datendatei und vollständige fachliche Freigabe bleiben offen.
+**Letzter Code-Commit:** `f398976` (Angle-Normalisierung)  
+**Letzter Test-Commit:** `3fe0f97` (erweiterte Placidus-Referenztests)  
+**Letzter Produkt-/Dokumentations-Commit:** `a31853b`  
+**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter und erste Placidus-/Whole-Sign-Berechnung integriert. CI-Lauf 45946079434 ist vollständig erfolgreich: Android- und iOS-Analyze, Tests sowie Plattform-Builds bestanden. Die Placidus-Formeln für RA→ekliptikale Länge und RA→Deklination wurden korrigiert und unabhängig mit Swiss Ephemeris 2.10.03 verglichen. Zusätzliche Tests prüfen nun alle zwölf Hausspitzen in mehreren ARMC-/Breitenkonstellationen sowie knapp unter und exakt an der Polarkreisgrenze. CI-Lauf 45947700544 nach dem Handoff-Update ist vollständig erfolgreich. Für die jüngsten zusätzlichen Tests (Commit `3fe0f97`) läuft CI 45948518404 noch; der unmittelbar vorherige Produkt-Dokumentationslauf 45948408106 war beim letzten Abruf in Bearbeitung. JPL-Datendatei und vollständige fachliche Freigabe bleiben offen.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -99,6 +100,9 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 - Erweiterte unabhängige Referenzprüfung mit Swiss Ephemeris 2.10.03 (swe.houses_armc, System Placidus): zusätzliche ARMC-/Breitenfälle 45°/20° N, 210°/50° S und 300°/55° N. In allen Fällen stimmen alle zwölf Hausspitzen einschließlich der Wrap-around-Werte 0°/360° bis auf numerische Rundung mit dem Referenzsystem überein.
 - Polargrenzprüfung: Bei ε = 23.44° ist die Grenze 90° − ε = 66.56°. Der Fall 66.559° N (ARMC 45°) liefert noch gültige Placidus-Häuser und stimmt für alle zwölf Spitzen mit Swiss Ephemeris überein. Genau bei 66.56° greift der explizite Whole-Sign-Fallback.
 - Diese zusätzlichen Regressionstests wurden in Commit `51e86a9` ergänzt. Der zugehörige CI-Lauf ist nach dem Push noch zu prüfen.
+- Erweiterte unabhängige Rasterprüfung am 27.11.2026: 1.584 Kombinationen aus ARMC (15°-Schritten über 360°), Breiten in Nord- und Südhalbkugel sowie sechs Obliquitätswerten (22°, 23°, 23.4391667°, 23.44°, 24° und 24.5°) wurden mit Swiss Ephemeris 2.10.03 (swe.houses_armc, Placidus) verglichen. In allen 1.584 Fällen stimmten alle zwölf Spitzen mit maximaler Abweichung < 0.000001° überein; alle Hausbögen waren positiv und die Gegenüberliegend-Beziehungen korrekt. Dies ist ein unabhängiger numerischer Vergleich des Dart-Algorithmus-Portes, noch kein automatisierter Lauf des Dart-Codes über alle 1.584 Fälle.
+- Drei zusätzliche vollständige Zwölf-Häuser-Regressionstests mit unabhängigen Swiss-Referenzvektoren wurden in Commit `3fe0f97` ergänzt: 37° N / ε=23°, 42° S / ε=24.5° sowie 12° N / ε=22°. Die Tests prüfen zusätzlich positive Hausbögen und Gegenüberliegend-Beziehungen. CI-Lauf **45948518404** für diesen Test-Commit war beim letzten Statusabruf pending.
+- CI-Lauf **45947700544** (Commit `640af1b`, Handoff-Dokumentation nach dem Angle-Fix) ist vollständig erfolgreich: Android Analyze, Tests, Debug-APK und Artifact-Upload sowie iOS Analyze, Tests und unsigned Build.
 - **Placidus ist ausdrücklich NICHT fachlich freigegeben:** unabhängige vollständige Referenzvektoren (z. B. Swiss-Ephemeris-`swe_houses_armc`) und reale Radix-Stichproben fehlen. Swiss Ephemeris ist nur Vergleichsreferenz, keine Runtime-Abhängigkeit.
 - Vor Freigabe mehrere Breitengrade (Äquator, mittlere und hohe Breiten, beide Hemisphären), mehrere ARMC-Werte, alle zwölf Spitzen, Achsen, Reihenfolge, Gegenüberliegende und Polargrenzfälle unabhängig vergleichen.
 
@@ -111,7 +115,7 @@ Implementierung in `lib/domain/astrology/house_calculator.dart`, keine zusätzli
 
 ## 5. Nächste Schritte
 
-1. Placidus-Referenzprüfung weiter verbreitern: zusätzliche ARMC-Werte, beide Hemisphären, mehrere Jahreszeiten-/Obliquitätswerte und geometrische Reihenfolge/Abstände der Häuser prüfen.
+1. CI-Lauf 45948518404 für die zusätzlichen Placidus-Referenztests abschließen und prüfen; anschließend weitere Rand-/Extremfälle und reale Radix-Stichproben validieren.
 3. Whole Sign gegen Referenzfälle testen.
 4. JPL-DE440s/DE442-Datenquelle, Rechte, Download und lokale Android-/iOS-Ablage klären.
 5. Hevelius mit echter SPK-Datei gegen dokumentierte Referenzfälle testen.
