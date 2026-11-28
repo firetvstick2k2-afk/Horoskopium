@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../domain/astrology/aspect_calculator.dart';
 import '../domain/astrology/chart_calculation_result.dart';
 
 /// Draws a data-driven Radix when calculation results are supplied.
@@ -99,6 +100,10 @@ class _RadixPainter extends CustomPainter {
         _text(canvas,(i+1).toString(),p(r*.49,a(start+span/2)),const Color(0xFFB8AA91),r*.052);
       }
     }
+
+    // Aspect chords use only pairs explicitly calculated in the domain layer.
+    _drawAspects(canvas,c,r,a,p,data);
+
     _axis(canvas,c,r,a,asc,'ASC');
     if(data.midheavenLongitudeDegrees!=null) {
       _axis(canvas,c,r,a,data.midheavenLongitudeDegrees!,'MC');
@@ -122,6 +127,38 @@ class _RadixPainter extends CustomPainter {
       _text(canvas,symbol,p(r*(.605-lane*.065),angle),const Color(0xFFF0D9A8),r*.09);
       _text(canvas,(body.longitudeDegrees%30).toStringAsFixed(0)+'°',
         p(r*.685,angle),const Color(0xFFD5CCBD),r*.037);
+    }
+  }
+
+  void _drawAspects(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double Function(double) angleFor,
+    Offset Function(double,double) point,
+    ChartCalculationResult data,
+  ) {
+    if (data.aspects.isEmpty) return;
+    final positions = {for (final body in data.positions) body.bodyId: body};
+    for (final aspect in data.aspects) {
+      final first = positions[aspect.firstBodyId];
+      final second = positions[aspect.secondBodyId];
+      if (first == null || second == null) continue;
+
+      final color = switch (aspect.aspect) {
+        MajorAspect.conjunction => const Color(0xFFB9A27A),
+        MajorAspect.sextile => const Color(0xFF82B7A0),
+        MajorAspect.square => const Color(0xFFD98575),
+        MajorAspect.trine => const Color(0xFF78A9C8),
+        MajorAspect.opposition => const Color(0xFFD98575),
+      };
+      final paint = Paint()
+        ..color = color.withValues(alpha: .72)
+        ..strokeWidth = 1.05
+        ..style = PaintingStyle.stroke;
+      final start = point(radius*.405, angleFor(first.longitudeDegrees));
+      final end = point(radius*.405, angleFor(second.longitudeDegrees));
+      canvas.drawLine(start,end,paint);
     }
   }
 
