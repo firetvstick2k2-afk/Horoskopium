@@ -5,7 +5,7 @@
 **Repository / technischer Projektname:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
 **Aktueller Ausgangs-HEAD vor diesem Branding-Commit:** `01e37691415877aac969918f334459aada33a04c`. CI-Lauf #105 (`46125668851`) ist fehlgeschlagen: `flutter analyze` meldete in `calculate_profile_radix.dart` einen nicht-konstanten Konstruktorparameter in einem `const`-Initializer. Diese Korrektur ist Bestandteil des folgenden Branding-Commits.  
-**Letzter vollständig erfolgreicher CI-Lauf:** Run #103 (`46071508841`) auf Commit `02438753`; Android und iOS haben Analyze, Tests und Plattform-Builds erfolgreich abgeschlossen.  
+**Letzter vollständig erfolgreicher CI-Lauf:** Run #106 (`46158652115`) auf Commit `d5fd7007`; Android und iOS haben Analyze, Tests und Plattform-Builds erfolgreich abgeschlossen. Android-Debug-APK wurde gebaut und als Artifact `astralium-android-debug` hochgeladen.  
 **Aktueller technischer Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter, Placidus-/Whole-Sign-Berechnung und JPL-Downloadmanager sind integriert. Der Profil-zu-Radix-Resolver ist bisher nur als Schnittstelle vorhanden; ein produktiver Orts-/Zeitzonenresolver und die UI-Anbindung fehlen. Keine reale Geräteprüfung oder produktive Radix-Berechnung behauptet.
 
 ## Produktidentität und Umbenennung (28.11.2026)
