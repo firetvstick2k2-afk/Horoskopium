@@ -45,16 +45,16 @@ void main() {
     test('accepts exact orb boundary and rejects outside boundary', () {
       final atBoundary = calculator.calculate([
         body('sun', 0),
-        body('moon', 68),
+        body('moon', 66),
       ]);
       final outside = calculator.calculate([
         body('sun', 0),
-        body('moon', 68.0001),
+        body('moon', 66.0001),
       ]);
 
       expect(atBoundary, hasLength(1));
       expect(atBoundary.single.aspect, MajorAspect.sextile);
-      expect(atBoundary.single.orbDegrees, 8);
+      expect(atBoundary.single.orbDegrees, 6);
       expect(outside, isEmpty);
     });
 
