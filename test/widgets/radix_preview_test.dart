@@ -12,6 +12,9 @@ void main() {
         CelestialPosition(bodyId: 'moon', longitudeDegrees: 48, isRetrograde: false),
         CelestialPosition(bodyId: 'mercury', longitudeDegrees: 17),
         CelestialPosition(bodyId: 'north_node_true', longitudeDegrees: 210),
+        // These two bodies are close together across the 0°/360° boundary.
+        CelestialPosition(bodyId: 'venus', longitudeDegrees: 358),
+        CelestialPosition(bodyId: 'mars', longitudeDegrees: 2),
       ],
       engineId: 'test-engine',
       engineVersion: '1.0',
