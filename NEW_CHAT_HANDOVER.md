@@ -3,12 +3,16 @@
 **Stand:** 28.11.2026  
 **Repository:** https://github.com/firetvstick2k2-afk/Horoskopium  
 **Branch:** `development`  
-**Aktueller HEAD:** `ca0b9705070d24a002d1370052d79a9de677f0e2`  
+**Aktueller HEAD vor diesem Handover-Update:** `3765c52188320ff532837625905312ba8eff9136`  
 **Main:** unverändert lassen.
 
 ## Aktueller Stand
 - CI #118 (Run `46165457738`) für Commit `e007078...` erfolgreich.
-- CI #125 (Run `46166046070`) auf Commit `043c6b2...` schlug bei `flutter analyze` fehl: genau ein neuer Warning wegen unbenutztem Import im IANA-Resolver. Dieser Import ist in `ca0b970...` entfernt; erneute CI-Prüfung steht aus.
+- CI #125 (Run `46166046070`) schlug wegen eines unbenutzten Imports fehl; der Import wurde entfernt. CI #129 (Run `46167117430`) für die Workflow-Änderung `cancel-in-progress: false` war erfolgreich.
+- Geburtsortsuche mit auswählbaren Treffern speichert Koordinaten, Land und IANA-Zeitzone im Geburtsprofil.
+- Antippen eines Profils führt über `CalculateProfileRadix`, historische IANA-Auflösung und aktive Ephemeriden-Engine zur Berechnung. Fehlende Geburtszeit wird in der Profilmaske verhindert; DST-Lücken/-Dopplungen werden nicht geraten.
+- Radix-Ansicht zeigt die berechneten Planetenpositionen, Aszendent, MC und Häuserspitzen. Die grafische Radix-Zeichnung ist noch nicht datenverbunden; Aspekte fehlen.
+- CI-Läufe #130–#137 sind noch nicht als erfolgreich bestätigt; mehrere Push-Runs wurden abgebrochen/queued. Aktuelle Run-Liste vor weiterer Arbeit prüfen.
 - Neue Adapter: `BirthPlaceGeocoder`, Open-Meteo-Geocoder, `IanaBirthChartInputResolver`; IANA-Zeitzonen-Datenbank via `timezone`.
 - TSL1-Verifier-Importfehler aus CI #115 behoben.
 - `docs/FUNKTIONEN.md` neu angelegt: fachlicher Funktionskatalog und Ausbauplanung.
@@ -34,5 +38,6 @@
 1. Neue Funktionsliste gemeinsam prüfen und priorisieren.
 2. Native sichere Speicherung auf Android/iOS testen.
 3. CI nach Analyzer-Korrektur erneut prüfen und Fehler beheben.
-4. Geocoding-Auswahl und Resolver-Integration in Profil-/Radix-UI ergänzen.
-5. Ephemeriden- und Häusersystem-Referenztests vervollständigen.
+4. CI für die Profil-/Radix-Integration vollständig abwarten und eventuelle Analyzer-/Testfehler beheben.
+5. Grafische Radix mit berechneten Positionen verbinden und Aspektberechnung ergänzen.
+6. Ephemeriden- und Häusersystem-Referenztests vervollständigen.
