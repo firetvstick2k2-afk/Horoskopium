@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../infrastructure/licensing/tsl1_license_verifier.dart';
 import '../services/tsl1_license_service.dart';
 
 class LicenseScreen extends StatefulWidget {
