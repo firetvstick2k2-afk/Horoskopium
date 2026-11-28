@@ -42,6 +42,24 @@ void main() {
       expect(result.utcDateTime, DateTime.utc(1990, 1, 12, 13, 35));
     });
 
+    test('uses the saved place selection without querying the geocoder', () async {
+      final result = await resolver.resolve(BirthProfile(
+        id: 'saved',
+        name: 'Test',
+        birthDate: DateTime(1990, 4, 12),
+        birthTime: '14:35',
+        birthPlace: 'Münster, Germany',
+        birthPlaceLatitude: 51.9607,
+        birthPlaceLongitude: 7.6261,
+        birthPlaceTimeZoneId: 'Europe/Berlin',
+        birthPlaceCountry: 'Germany',
+      ));
+
+      expect(result.utcDateTime, DateTime.utc(1990, 4, 12, 12, 35));
+      expect(result.latitudeDegrees, 51.9607);
+      expect(geocoder.callCount, 0);
+    });
+
     test('rejects a nonexistent time during spring-forward', () async {
       await expectLater(
         resolver.resolve(_profile(
@@ -69,7 +87,7 @@ void main() {
       );
     });
 
-    test('requires an unambiguous place result', () async {
+    test('requires an unambiguous place result for legacy profiles', () async {
       geocoder.results = const [
         GeocodedBirthPlace(
           name: 'Münster',
@@ -107,7 +125,11 @@ class _FakeGeocoder implements BirthPlaceGeocoder {
   _FakeGeocoder(this.results);
 
   List<GeocodedBirthPlace> results;
+  int callCount = 0;
 
   @override
-  Future<List<GeocodedBirthPlace>> search(String query) async => results;
+  Future<List<GeocodedBirthPlace>> search(String query) async {
+    callCount++;
+    return results;
+  }
 }
