@@ -1,4 +1,3 @@
-import '../../domain/astrology/chart_calculation_input.dart';
 import '../../domain/astrology/chart_calculation_result.dart';
 import '../../models/birth_profile.dart';
 import '../ports/birth_chart_input_resolver.dart';
@@ -12,7 +11,7 @@ class CalculateProfileRadix {
     required BirthChartInputResolver inputResolver,
     required EphemerisEngine engine,
   })  : _inputResolver = inputResolver,
-        _calculateRadix = CalculateRadix(engine);
+        _calculateRadix = const CalculateRadix(engine);
 
   final BirthChartInputResolver _inputResolver;
   final CalculateRadix _calculateRadix;
