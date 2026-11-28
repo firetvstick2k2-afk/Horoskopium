@@ -100,7 +100,7 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-          children: const [
+          children: [
             _WelcomeHeader(),
             SizedBox(height: 22),
             _BirthChartCard(),
@@ -111,6 +111,9 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.public,
               title: 'Geburtshoroskop',
               subtitle: 'Radix, Häuser, Planeten und Aspekte',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ProfilesScreen(runtime: runtime)),
+              ),
             ),
             _FeatureTile(
               icon: Icons.favorite_outline,
@@ -259,11 +262,13 @@ class _FeatureTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -291,11 +296,7 @@ class _FeatureTile extends StatelessWidget {
           Icons.chevron_right,
           color: Color(0xFF9A7135),
         ),
-        onTap: title == 'Geburtshoroskop'
-            ? () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RadixScreen()),
-                )
-            : null,
+        onTap: onTap,
       ),
     );
   }
