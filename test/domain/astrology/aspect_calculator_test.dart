@@ -83,7 +83,7 @@ void main() {
 
       expect(result, hasLength(3));
       expect(
-        result.map((aspect) => 'undefined:undefined'),
+        result.map((aspect) => '${aspect.firstBodyId}:${aspect.secondBodyId}'),
         ['sun:moon', 'sun:venus', 'moon:venus'],
       );
     });
