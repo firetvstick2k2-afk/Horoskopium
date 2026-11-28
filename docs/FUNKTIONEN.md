@@ -358,5 +358,70 @@ Die vom Nutzer erwähnte deutsche Referenzseite ist **Astrodienst (astro.com)**.
 - Vom Nutzer bereitgestellte Datei `PREISE Astrologie.pdf`: Ideensammlung zu angebotenen Analysearten (u. a. Partner, Eltern-Kind, Tiere, Astrogeografie, Fixsterne, Asteroiden und Prognosen). Die dortigen Preise und Formulierungen werden nicht übernommen.
 - Technische Umsetzungsdetails und Implementierungsstatus stehen ausschließlich in `ARCHITECTURE.md` und `HANDOFF.md`.
 
+## 16. Eigene Ideen – vom Nutzer aufgenommen, noch nicht umgesetzt
+
+Die folgenden Erweiterungsideen wurden vom Assistenten vorgeschlagen und vom Nutzer ausdrücklich zur Aufnahme in den Funktionskatalog freigegeben. Sie sind zusätzliche Planungspunkte; ihre konkrete Ausgestaltung und Priorisierung wird später gemeinsam festgelegt.
+
+### 16.1 Astrologisches Lebensrad
+- Visuelle Übersicht verschiedener Lebensbereiche, z. B. Liebe, Familie, Beruf, Finanzen, Kreativität und persönliche Entwicklung
+- Symbolische astrologische Einordnung der jeweiligen Lebensbereiche
+- Verknüpfung mit Radix, Häusern und ausgewählten aktuellen Zeitmethoden
+- Verständliche Darstellung von Schwerpunkten und Fragestellungen, ohne Lebensbereiche als objektiv messbar oder vorherbestimmt auszugeben
+
+### 16.2 Astrologischer Zeitstrahl
+- Persönliche chronologische Übersicht wichtiger astrologischer Konstellationen
+- Darstellung vergangener, aktueller und kommender Transite sowie ausgewählter Zyklen
+- Filter nach Zeitraum, Planet, Lebensbereich und Methode
+- Optionale Markierung persönlicher Ereignisse zum individuellen Rückblick
+- Verbindung zur bestehenden Mehrjahresübersicht und Transit-Zeitleiste
+
+### 16.3 Beziehungs-Kompass
+- Erweiterte Betrachtung wichtiger zwischenmenschlicher Beziehungen, nicht nur romantischer Partnerschaften
+- Mögliche Beziehungstypen: Partnerschaft, Freundschaft, Eltern, Kinder, Geschwister und berufliche Beziehungen
+- Synastrie und weitere geeignete Vergleichsmethoden je nach Beziehungstyp
+- Verständliche Darstellung von Gemeinsamkeiten, Unterschieden und möglichen Entwicklungsthemen
+- Keine Bewertung einer Beziehung als objektiv gut, schlecht oder zwangsläufig
+
+### 16.4 Familien-Sternenkarte
+- Gemeinsame visuelle Übersicht der Horoskope aller erfassten Familienmitglieder
+- Darstellung von Familienbeziehungen und ausgewählten astrologischen Verbindungen
+- Wechsel zwischen Familiengesamtbild und Einzelverbindungen
+- Ergänzung des bestehenden Familienhoroskops um eine besonders anschauliche Darstellung
+
+### 16.5 Tier-Mensch-Verbindung
+- Vertiefte Darstellung der astrologischen Verbindung zwischen einer Person und ihrem Tier
+- Verbindung von Tierprofil, individuellem Tierhoroskop und Mensch-Tier-Synastrie
+- Möglichkeit, mehrere Tiere und ihre Beziehungen innerhalb eines Haushalts einzubeziehen
+- Respektvolle, spielerische und nicht-medizinische Deutung
+
+### 16.6 Persönlicher Jahresbegleiter
+- Jahresübersicht mit monatlichen astrologischen Schwerpunkten
+- Auswahl relevanter Transite, Zyklen und weiterer freigegebener Zeitmethoden
+- Verständliche Vorschau und Rückschau für jeden Monat
+- Optional persönliche Notizen und Erinnerungsmarkierungen
+- Als symbolischer Orientierungs- und Reflexionsbegleiter, nicht als sichere Ereignisvorhersage
+
+### 16.7 Horoskop-Vergleich
+- Direkter Vergleich von zwei Horoskopen mit übersichtlicher Gegenüberstellung
+- Anzeige gemeinsamer und unterschiedlicher Konstellationen
+- Verknüpfung mit Synastrie und geeigneten Vergleichsansichten
+- Perspektivwechsel zwischen kompakter Übersicht und detaillierter Analyse
+
+### 16.8 Astrologischer Wissensbereich
+- Integriertes Nachschlagewerk für Planeten, Zeichen, Häuser, Aspekte und astrologische Fachbegriffe
+- Einsteigerfreundliche Erklärungen und weiterführende Fachinformationen
+- Erläuterung der Unterschiede zwischen klassischen, traditionellen und modernen Methoden
+- Kontextbezogene Hilfen direkt bei Horoskopansichten und Auswertungen
+- Quellen- und Methodenhinweise, damit Begriffe und Deutungen nachvollziehbar bleiben
+
+### 16.9 Drei Deutungstiefen für Auswertungen
+Auswertungen sollen – soweit der jeweilige Berichtstyp es sinnvoll unterstützt – in drei Tiefen angeboten werden:
+
+- **Kompakt:** kurze, leicht verständliche Zusammenfassung der wichtigsten Punkte
+- **Ausführlich:** vertiefte Erklärung mit Zusammenhängen, Beispielen und mehreren relevanten Faktoren
+- **Professionell:** detaillierte Fachauswertung mit astrologischer Terminologie, Methodenangaben, Berechnungsgrundlagen und differenzierter Interpretation
+
+Die drei Stufen sollen keine unterschiedlichen Berechnungsergebnisse erzeugen. Sie unterscheiden sich in Umfang, Detailtiefe, Fachsprache und Aufbereitung. Auch die professionelle Fassung muss verständlich, nachvollziehbar und nicht-deterministisch bleiben.
+
 ---
 **Arbeitsprinzip:** Erst fachlich sauber definieren, dann Berechnung testen, anschließend Interpretation und Bericht gestalten. Neue Methoden werden einzeln ergänzt und nicht ungeprüft in bestehende Berechnungswege gemischt.
