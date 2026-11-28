@@ -7,11 +7,11 @@ import 'calculate_radix.dart';
 /// Orchestrates a saved birth profile through location/time resolution and
 /// the selected ephemeris engine.
 class CalculateProfileRadix {
-  const CalculateProfileRadix({
+  CalculateProfileRadix({
     required BirthChartInputResolver inputResolver,
     required EphemerisEngine engine,
   })  : _inputResolver = inputResolver,
-        _calculateRadix = const CalculateRadix(engine);
+        _calculateRadix = CalculateRadix(engine);
 
   final BirthChartInputResolver _inputResolver;
   final CalculateRadix _calculateRadix;

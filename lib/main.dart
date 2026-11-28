@@ -11,11 +11,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final runtime = EphemerisRuntime(downloads: EphemerisDownloadService());
   await runtime.restore();
-  runApp(HoroskopiumApp(runtime: runtime));
+  runApp(AstraliumApp(runtime: runtime));
 }
 
-class HoroskopiumApp extends StatelessWidget {
-  HoroskopiumApp({super.key, EphemerisRuntime? runtime})
+class AstraliumApp extends StatelessWidget {
+  AstraliumApp({super.key, EphemerisRuntime? runtime})
       : runtime = runtime ?? EphemerisRuntime(downloads: EphemerisDownloadService());
 
   final EphemerisRuntime runtime;
@@ -27,7 +27,7 @@ class HoroskopiumApp extends StatelessWidget {
     const gold = Color(0xFFB18A4A);
 
     return MaterialApp(
-      title: 'Horoskopium',
+      title: 'ASTRALIUM',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'HOROSKOPIUM',
+          'ASTRALIUM',
           style: TextStyle(
             letterSpacing: 3.2,
             fontWeight: FontWeight.w600,

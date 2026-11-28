@@ -1,12 +1,21 @@
-# Horoskopium – Handoff
+# ASTRALIUM – Handoff
 
-**Stand:** 27.11.2026  
-**Repository:** firetvstick2k2-afk/Horoskopium  
+**Stand:** 28.11.2026  
+**Öffentlicher Produktname:** ASTRALIUM (zuvor Horoskopium)  
+**Repository / technischer Projektname:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Letzter Code-/Test-Commit:** `ffb869f4` (app-weite EphemerisRuntime und Lifecycle-Regressionstests); CI für diesen neuen Runtime-Code steht noch aus. Architekturentscheidung: `docs/EPHEMERIS_RUNTIME_DESIGN.md` (Commit `0744b81f`).  
-**Letzter vollständig erfolgreicher CI-Lauf:** **46062638336** (Run #84) auf Commit `b4d634ae`; Android und iOS haben Analyze, sämtliche Tests und ihre Plattform-Builds bestanden. Android-Debug-APK wurde erfolgreich gebaut und als Artifact hochgeladen. Der Code-Test-Commit `0061e799` ist in diesem Nachfolge-Commit enthalten und damit CI-validiert. Der separate Lauf #83 (`46062622219`) wurde durch den unmittelbar folgenden Push abgebrochen, hatte keine Jobs und ist kein Testfehler.  
-**Vorheriger Runner-Abbruch:** Lauf `46035145817` auf `d6adb361` hatte einen erfolgreichen Android-Job; der iOS-Job wurde nach längerer macOS-Runner-Wartezeit ohne Start abgebrochen (`cancelled`, keine Steps). Der iOS-Job wurde nicht wegen eines Code-/Testfehlers abgebrochen. Der nächste Code-Lauf `46040817288` lief anschließend auf beiden Plattformen vollständig erfolgreich.  
-**Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter, Placidus-/Whole-Sign-Berechnung und erster JPL-Downloadmanager sind integriert. DE440s/DE442 können heruntergeladen und lokal per SHA-256 geprüft werden. Die SPK-Datei ist noch nicht mit dem Radix-Use-Case verbunden und wurde noch nicht auf realen Geräten validiert. Placidus bleibt trotz umfangreicher mathematischer Referenztests bis zur End-to-End-Prüfung fachlich nicht freigegeben.
+**Aktueller Ausgangs-HEAD vor diesem Branding-Commit:** `01e37691415877aac969918f334459aada33a04c`. CI-Lauf #105 (`46125668851`) ist fehlgeschlagen: `flutter analyze` meldete in `calculate_profile_radix.dart` einen nicht-konstanten Konstruktorparameter in einem `const`-Initializer. Diese Korrektur ist Bestandteil des folgenden Branding-Commits.  
+**Letzter vollständig erfolgreicher CI-Lauf:** Run #103 (`46071508841`) auf Commit `02438753`; Android und iOS haben Analyze, Tests und Plattform-Builds erfolgreich abgeschlossen.  
+**Aktueller technischer Status:** Flutter-Grundgerüst, UI-Prototyp, Domain-/Application-Schnittstellen, Hevelius-Adapter, Placidus-/Whole-Sign-Berechnung und JPL-Downloadmanager sind integriert. Der Profil-zu-Radix-Resolver ist bisher nur als Schnittstelle vorhanden; ein produktiver Orts-/Zeitzonenresolver und die UI-Anbindung fehlen. Keine reale Geräteprüfung oder produktive Radix-Berechnung behauptet.
+
+## Produktidentität und Umbenennung (28.11.2026)
+
+- Der sichtbare Produktname lautet ab sofort **ASTRALIUM**.
+- Der GitHub-Repositoryname `Horoskopium`, Flutter-Paketname `horoskopium`, Dart-Importpfade `package:horoskopium/...` und die daraus generierte Android-Application-ID bleiben vorerst unverändert. Damit wird keine bestehende technische Identität oder Installationskompatibilität unnötig verändert.
+- Android- und iOS-Launcher-Anzeigename werden im CI nach der Generierung der Plattformprojekte explizit auf `ASTRALIUM` gesetzt.
+- Die Flutter-Oberfläche, Widget-Tests, README und aktuelle Architektur-/Handoff-Überschriften verwenden den Produktnamen ASTRALIUM.
+- Das vorhandene TSL1-Lizenzkonzept soll später für ASTRALIUM wiederverwendet werden. Generator, privater Master-Key und bestehendes Tokenformat bleiben unangetastet. Die Integration in ASTRALIUM ist noch nicht implementiert.
+- Verteilung zunächst als APK außerhalb offizieller Stores; spätere Verbreitung oder kommerzielle Nutzung bleibt offen. Markenrechtliche Freigabe ist nicht Bestandteil dieser technischen Umbenennung.
 
 ## 1. Verbindliche Arbeitsregeln
 
@@ -22,7 +31,7 @@
 
 ## 2. Produktentscheidungen
 
-- Projektname: **Horoskopium**.
+- Produktname: **ASTRALIUM**; Repository-/Paketkennung bleibt vorerst **Horoskopium / horoskopium**.
 - Plattformen: Android und iOS; gemeinsame Flutter-/Dart-Codebasis.
 - Gestaltung: Pergament, Nachtblau und Gold; klassisch und gut lesbar.
 - Geplant: Radix, Synastrie/Composite, Transite, Aspekte, Häuser, Planeten, Elemente, Modalitäten, Mondknoten, Chiron, Lilith und PDF-Bericht.
@@ -42,7 +51,7 @@
 
 ## 3. Lizenzentscheidung
 
-**Ein und derselbe Lizenzschlüssel soll sowohl Topf Secret als auch Horoskopium aktivieren.**
+**Ein und derselbe Lizenzschlüssel soll sowohl Topf Secret als auch ASTRALIUM aktivieren.**
 - Licence-Studio-Generator und vorhandener privater Hauptschlüssel bleiben unverändert.
 - Bestehendes TSL1-Tokenformat und ECDSA-P-256/SHA-256 werden wiederverwendet.
 - In Apps liegt nur der öffentliche Prüfschlüssel.

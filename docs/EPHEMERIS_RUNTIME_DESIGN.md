@@ -1,4 +1,4 @@
-# Horoskopium – Ephemeris Runtime Lifecycle
+# ASTRALIUM – Ephemeris Runtime Lifecycle
 
 **Status:** Architekturentscheidung / Implementierungsgrundlage  
 **Branch:** development  

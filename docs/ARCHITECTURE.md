@@ -1,4 +1,4 @@
-# Horoskopium – Architekturleitlinien
+# ASTRALIUM – Architekturleitlinien
 
 ## Zielbild
 
@@ -99,7 +99,7 @@ Geburtsort und lokale Geburtszeit sind nicht ausreichend, um UTC ohne Orts-/Zeit
 
 ## Lizenz
 
-Ein Lizenzschlüssel für Topf Secret und Horoskopium, auf Android und iOS. Bestehendes TSL1-Format, vorhandener Hauptschlüssel und Generator sollen wiederverwendet werden. Private Signierschlüssel gehören ausschließlich in Licence Studio; in Apps liegt nur der öffentliche Prüfschlüssel.
+Ein Lizenzschlüssel für Topf Secret und ASTRALIUM, auf Android und iOS. Bestehendes TSL1-Format, vorhandener Hauptschlüssel und Generator sollen wiederverwendet werden. Private Signierschlüssel gehören ausschließlich in Licence Studio; in Apps liegt nur der öffentliche Prüfschlüssel.
 
 ## Datenschutz
 

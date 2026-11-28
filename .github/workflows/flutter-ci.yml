@@ -33,6 +33,9 @@ jobs:
       - name: Generate platform projects
         run: flutter create . --project-name horoskopium --platforms=android,ios
 
+      - name: Set Android launcher label
+        run: sed -i 's/android:label="[^"]*"/android:label="ASTRALIUM"/' android/app/src/main/AndroidManifest.xml
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -48,7 +51,7 @@ jobs:
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: horoskopium-android-debug
+          name: astralium-android-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
 
@@ -67,6 +70,11 @@ jobs:
 
       - name: Generate platform projects
         run: flutter create . --project-name horoskopium --platforms=android,ios
+
+      - name: Set iOS display name
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ASTRALIUM" ios/Runner/Info.plist || \
+            /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string ASTRALIUM" ios/Runner/Info.plist
 
       - name: Install dependencies
         run: flutter pub get
