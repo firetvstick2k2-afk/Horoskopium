@@ -81,7 +81,7 @@ class _RadixPainter extends CustomPainter {
     final ticks=Paint()..color=const Color(0xFFB9A27A)..strokeWidth=.7;
     for(var degree=0;degree<360;degree+=5) {
       final angle=a(degree.toDouble());
-      canvas.drawLine(p(r*(degree%30==0?.81:.855),angle),p(r*.88,angle),ticks);
+      canvas.drawLine(p(r*(degree % 30 == 0 ? .81 : .855),angle),p(r*.88,angle),ticks);
     }
     for(var sign=0;sign<12;sign++) {
       _text(canvas,_signs[sign],p(r*.745,a(sign*30.0+15)),_colors[sign],r*.105);
