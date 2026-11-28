@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../application/ports/birth_chart_input_resolver.dart';
 import '../../application/ports/birth_place_geocoder.dart';
 import '../../domain/astrology/chart_calculation_input.dart';
+import '../../domain/location/geocoded_birth_place.dart';
 import '../../models/birth_profile.dart';
 
 /// Resolves a civil birth record to UTC using the place's historical IANA rules.
@@ -28,23 +29,8 @@ class IanaBirthChartInputResolver implements BirthChartInputResolver {
 
   @override
   Future<ChartCalculationInput> resolve(BirthProfile profile) async {
-    final placeQuery = profile.birthPlace?.trim() ?? '';
-    if (placeQuery.isEmpty) {
-      throw StateError('Für das Geburtsprofil fehlt der Geburtsort.');
-    }
-
     final time = _parseBirthTime(profile.birthTime);
-    final matches = await _geocoder.search(placeQuery);
-    if (matches.isEmpty) {
-      throw StateError('Der Geburtsort „$placeQuery“ wurde nicht gefunden.');
-    }
-    if (matches.length > 1) {
-      throw StateError(
-        'Der Geburtsort ist nicht eindeutig. Bitte Ort und Land ergänzen.',
-      );
-    }
-
-    final place = matches.single;
+    final place = await _resolvePlace(profile);
     if (!place.isValid) {
       throw StateError('Die Ortsdaten sind unvollständig oder ungültig.');
     }
@@ -62,6 +48,38 @@ class IanaBirthChartInputResolver implements BirthChartInputResolver {
       latitudeDegrees: place.latitudeDegrees,
       longitudeDegrees: place.longitudeDegrees,
     );
+  }
+
+  Future<GeocodedBirthPlace> _resolvePlace(BirthProfile profile) async {
+    final latitude = profile.birthPlaceLatitude;
+    final longitude = profile.birthPlaceLongitude;
+    final zone = profile.birthPlaceTimeZoneId?.trim() ?? '';
+    if (latitude != null && longitude != null && zone.isNotEmpty) {
+      return GeocodedBirthPlace(
+        name: profile.birthPlace?.trim().isNotEmpty == true
+            ? profile.birthPlace!.trim()
+            : 'Gespeicherter Geburtsort',
+        latitudeDegrees: latitude,
+        longitudeDegrees: longitude,
+        timeZoneId: zone,
+        country: profile.birthPlaceCountry,
+      );
+    }
+
+    final query = profile.birthPlace?.trim() ?? '';
+    if (query.isEmpty) {
+      throw StateError('Für das Geburtsprofil fehlt der Geburtsort.');
+    }
+    final matches = await _geocoder.search(query);
+    if (matches.isEmpty) {
+      throw StateError('Der Geburtsort „$query“ wurde nicht gefunden.');
+    }
+    if (matches.length > 1) {
+      throw StateError(
+        'Der Geburtsort ist nicht eindeutig. Bitte Ort und Land ergänzen.',
+      );
+    }
+    return matches.single;
   }
 
   static (int, int) _parseBirthTime(String? value) {
@@ -90,8 +108,6 @@ class IanaBirthChartInputResolver implements BirthChartInputResolver {
     final localAsUtc = DateTime.utc(date.year, date.month, date.day, hour, minute);
     final candidates = <DateTime>{};
 
-    // Collect offsets around the requested wall-clock time. Sampling both
-    // sides of the date catches the offsets on either side of DST transitions.
     for (var hours = -96; hours <= 96; hours += 3) {
       final sample = localAsUtc.add(Duration(hours: hours));
       final offset = location.timeZone(sample.millisecondsSinceEpoch).offset;
