@@ -3,7 +3,7 @@
 **Stand:** 28.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Aktueller HEAD vor TSL1-End-to-End-Test:** `6fb043c82f1ced192e0f2bfdcb1c708444b4aa36`
+**Aktueller Teststand:** `28c78347d1b7a2d4fd9604d8f8ecf47ac61a0984` (Test und Handoff gemeinsam committed; CI-Lauf steht aus).
 
 ## TSL1-Lizenzintegration
 
@@ -17,7 +17,7 @@
 - Die Aktivierungsseite liegt in `lib/screens/license_screen.dart`; erreichbar über Einstellungen. Aktivieren speichert nur nach erfolgreicher Signatur- und Ablaufprüfung. Deaktivieren entfernt den lokalen Token.
 - Die Lizenzverwaltung ist informativ und sperrt nicht global die App. Eine Produktzugriffs-/Sperrpolitik wurde nicht festgelegt.
 - **CI #111** auf `development`, Commit `6fb043c82f1ced192e0f2bfdcb1c708444b4aa36`: vollständig erfolgreich. Android- und iOS-Analyse, Tests und Builds bestanden; Android-Debug-APK wurde hochgeladen.
-- Positiver TSL1-Test: Ein temporäres P-256-Schlüsselpaar wird zur Laufzeit im Test erzeugt. Kein privater Produktionsschlüssel und keine Kundendaten werden verwendet oder committed. Geprüft werden Signaturvalidierung, Aktivierung, Speicherung, Wiederherstellung und Ablaufgrenze.
+- Positiver TSL1-Test (Commit `28c78347d1b7a2d4fd9604d8f8ecf47ac61a0984`): Ein temporäres P-256-Schlüsselpaar wird zur Laufzeit im Test erzeugt. Kein privater Produktionsschlüssel und keine Kundendaten werden verwendet oder committed. Geprüft werden Signaturvalidierung, Aktivierung, Speicherung, Wiederherstellung und Ablaufgrenze.
 - Reale Android-/iOS-Geräteprüfung der nativen sicheren Speicher bleibt separat erforderlich.
 - Eine gültige Signatur allein bedeutet noch keine Gerätebindung. Keine privaten Schlüssel oder Kundendaten in die App oder das Repository übernehmen.
 
