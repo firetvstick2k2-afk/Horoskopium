@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../domain/location/geocoded_birth_place.dart';
 import '../models/birth_profile.dart';
 import '../services/profile_store.dart';
+import '../infrastructure/location/open_meteo_birth_place_geocoder.dart';
 
 class ProfilesScreen extends StatefulWidget {
   const ProfilesScreen({super.key});
@@ -140,7 +142,10 @@ class _ProfileDialogState extends State<_ProfileDialog> {
   final _name = TextEditingController();
   final _time = TextEditingController();
   final _place = TextEditingController();
+  final _geocoder = OpenMeteoBirthPlaceGeocoder();
   DateTime? _birthDate;
+  GeocodedBirthPlace? _selectedPlace;
+  bool _searchingPlace = false;
 
   @override
   void dispose() {
@@ -162,16 +167,101 @@ class _ProfileDialogState extends State<_ProfileDialog> {
     if (selected != null) setState(() => _birthDate = selected);
   }
 
+  Future<void> _searchBirthPlace() async {
+    final query = _place.text.trim();
+    if (query.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte mindestens zwei Zeichen eingeben.')),
+      );
+      return;
+    }
+    setState(() => _searchingPlace = true);
+    try {
+      final results = await _geocoder.search(query);
+      if (!mounted) return;
+      if (results.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Keine passenden Orte gefunden.')),
+        );
+        return;
+      }
+      final selected = await showDialog<GeocodedBirthPlace>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Geburtsort auswählen'),
+          content: SizedBox(
+            width: 420,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: results.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final place = results[index];
+                final location = [
+                  place.name,
+                  if (place.country != null && place.country!.isNotEmpty) place.country!,
+                ].join(', ');
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(location),
+                  subtitle: Text(
+                    '${place.latitudeDegrees.toStringAsFixed(4)}, '
+                    '${place.longitudeDegrees.toStringAsFixed(4)} · ${place.timeZoneId}',
+                  ),
+                  onTap: () => Navigator.of(dialogContext).pop(place),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Abbrechen'),
+            ),
+          ],
+        ),
+      );
+      if (selected != null && mounted) {
+        setState(() {
+          _selectedPlace = selected;
+          _place.text = [
+            selected.name,
+            if (selected.country != null && selected.country!.isNotEmpty)
+              selected.country!,
+          ].join(', ');
+        });
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ortssuche fehlgeschlagen: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _searchingPlace = false);
+    }
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate() || _birthDate == null) return;
+    if (_selectedPlace == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte den Geburtsort suchen und ein Ergebnis auswählen.')),
+      );
+      return;
+    }
     final time = _time.text.trim();
+    final place = _selectedPlace!;
     Navigator.of(context).pop(
       BirthProfile(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         name: _name.text.trim(),
         birthDate: _birthDate!,
         birthTime: time.isEmpty ? null : time,
-        birthPlace: _place.text.trim().isEmpty ? null : _place.text.trim(),
+        birthPlace: _place.text.trim(),
+        birthPlaceLatitude: place.latitudeDegrees,
+        birthPlaceLongitude: place.longitudeDegrees,
+        birthPlaceTimeZoneId: place.timeZoneId,
+        birthPlaceCountry: place.country,
       ),
     );
   }
@@ -196,7 +286,7 @@ class _ProfileDialogState extends State<_ProfileDialog> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Geburtsdatum'),
-                subtitle: Text(_birthDate == null ? 'Bitte auswählen' : 
+                subtitle: Text(_birthDate == null ? 'Bitte auswählen' :
                     '${_birthDate!.day.toString().padLeft(2, '0')}.${_birthDate!.month.toString().padLeft(2, '0')}.${_birthDate!.year}'),
                 trailing: const Icon(Icons.calendar_month),
                 onTap: _chooseDate,
@@ -216,11 +306,42 @@ class _ProfileDialogState extends State<_ProfileDialog> {
                       : 'Bitte HH:MM verwenden';
                 },
               ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _place,
-                decoration: const InputDecoration(
-                  labelText: 'Geburtsort (optional)',
+                decoration: InputDecoration(
+                  labelText: 'Geburtsort',
+                  hintText: 'z. B. Münster',
+                  suffixIcon: IconButton(
+                    tooltip: 'Ort suchen',
+                    onPressed: _searchingPlace ? null : _searchBirthPlace,
+                    icon: _searchingPlace
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search),
+                  ),
                 ),
+                onChanged: (_) => setState(() => _selectedPlace = null),
+                validator: (value) =>
+                    value == null || value.trim().isEmpty ? 'Bitte Geburtsort eingeben' : null,
+              ),
+              if (_selectedPlace != null) ...[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Ausgewählt: ${_selectedPlace!.timeZoneId}',
+                    style: const TextStyle(color: Color(0xFF47734D), fontSize: 12),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 4),
+              const Text(
+                'Für die Berechnung wird der ausgewählte Ort mit Koordinaten und historischer Zeitzone gespeichert.',
+                style: TextStyle(color: Color(0xFF716653), fontSize: 12),
               ),
             ],
           ),
