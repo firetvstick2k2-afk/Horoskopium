@@ -341,13 +341,13 @@ class _ProfileDialogState extends State<_ProfileDialog> {
               TextFormField(
                 controller: _time,
                 decoration: const InputDecoration(
-                  labelText: 'Geburtszeit (optional)',
+                  labelText: 'Geburtszeit',
                   hintText: 'z. B. 14:35',
                 ),
                 keyboardType: TextInputType.datetime,
                 validator: (value) {
                   final text = value?.trim() ?? '';
-                  if (text.isEmpty) return null;
+                  if (text.isEmpty) return 'Für die genaue Radix-Berechnung erforderlich';
                   return RegExp(r'^([01]\d|2[0-3]):[0-5]\d$').hasMatch(text)
                       ? null
                       : 'Bitte HH:MM verwenden';
