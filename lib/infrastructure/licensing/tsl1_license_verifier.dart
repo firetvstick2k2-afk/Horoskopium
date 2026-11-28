@@ -1,104 +1,247 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:pointycastle/export.dart';
 
 class AstraliumLicense {
-  const AstraliumLicense({required this.id, required this.customerName, required this.customerEmail, required this.type, required this.issuedAt, this.expiresAt, this.durationValue, this.durationUnit});
-  final String id, customerName, customerEmail, type;
+  const AstraliumLicense({
+    required this.id,
+    required this.customerName,
+    required this.customerEmail,
+    required this.type,
+    required this.issuedAt,
+    this.expiresAt,
+    this.durationValue,
+    this.durationUnit,
+  });
+
+  final String id;
+  final String customerName;
+  final String customerEmail;
+  final String type;
   final DateTime issuedAt;
   final DateTime? expiresAt;
   final int? durationValue;
   final String? durationUnit;
+
   bool get isLifetime => type == 'lifetime';
 }
 
-/// Offline verifier for Licence Studio TSL1 tokens (ECDSA P-256 / SHA-256).
-/// The signed product claim "topf_secret" is the shared license namespace
-/// used by both Topf Secret and ASTRALIUM; the issuer is not modified.
+/// Dart port of Topf Secret's LicenseVerifier.kt.
+///
+/// Token format: TSL1.<base64url-payload>.<base64url-ECDSA-SHA256-signature>
+/// The signed product claim remains "topf_secret" for both applications.
 class Tsl1LicenseVerifier {
-  Tsl1LicenseVerifier({String publicKeyBase64Url = publicKey, DateTime Function()? clock})
-      : _key = publicKeyBase64Url, _clock = clock ?? DateTime.now;
-  static const publicKey = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEO_8xiWBZLIQw--gBpf1Touzg5jPDJLbLHbHiRUlakcvVTgdEcqSBf3-wsU9pzvsF9yCpKZfz4lWWB4bj2LGnQ';
+  Tsl1LicenseVerifier({
+    String publicKeyBase64Url = publicKey,
+    DateTime Function()? clock,
+  })  : _key = publicKeyBase64Url,
+        _clock = clock ?? DateTime.now;
+
+  static const publicKey =
+      'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEO_8xiWBZLIQw--gBpf1Touzg5jPDJLbLHbHiRUlakcvVTgdEcqSBf3-wsU9pzvsF9yCpKZfz4lWWB4bj2LGnQ';
+
+  // X.509 SubjectPublicKeyInfo header for an uncompressed P-256 EC point.
+  static const List<int> _p256SpkiPrefix = [
+    0x30,  0x59,  0x30,  0x13,  0x06,  0x07,  0x2a,  0x86,  0x48,
+    0xce,  0x3d,  0x02,  0x01,  0x06,  0x08,  0x2a,  0x86,  0x48,
+    0xce,  0x3d,  0x03,  0x01,  0x07,  0x03,  0x42,  0x00,
+  ];
+
   final String _key;
   final DateTime Function() _clock;
 
   AstraliumLicense? verify(String token) {
     try {
-      final p = token.trim().split('.');
-      if (p.length != 3 || p[0] != 'TSL1') return null;
-      final payloadBytes = _b64(p[1]), sigBytes = _b64(p[2]), keyBytes = _b64(_key);
-      if (!_verify(keyBytes, payloadBytes, sigBytes)) return null;
+      final parts = token.trim().split('.');
+      if (parts.length != 3 || parts[0] != 'TSL1') return null;
+
+      final payloadBytes = _base64UrlDecode(parts[1]);
+      final signatureBytes = _base64UrlDecode(parts[2]);
+      final publicKeyBytes = _base64UrlDecode(_key);
+
+      if (!_verifySignature(publicKeyBytes, payloadBytes, signatureBytes)) {
+        return null;
+      }
+
       final decoded = jsonDecode(utf8.decode(payloadBytes));
       if (decoded is! Map<String, dynamic>) return null;
-      final x = decoded;
-      final id = x['id'], name = x['customerName'], email = x['customerEmail'];
-      final type = x['type'], issuedAt = x['issuedAt'];
-      if (x['version'] != 1 || x['product'] != 'topf_secret' ||
-          id is! String || !_uuid(id) || name is! String || name.trim().isEmpty ||
-          email is! String || type is! String ||
-          !{'lifetime','monthly','quarterly','half_yearly','yearly','custom'}.contains(type) ||
-          issuedAt is! int || issuedAt <= 0) return null;
-      final now = _clock().toUtc();
-      final issued = DateTime.fromMillisecondsSinceEpoch(issuedAt * 1000, isUtc: true);
-      if (issued.isAfter(now.add(const Duration(minutes: 5)))) return null;
-      if (type == 'lifetime') {
-        if (x.containsKey('expiresAt')) return null;
-        return AstraliumLicense(id:id, customerName:name, customerEmail:email, type:type, issuedAt:issued);
+
+      final id = decoded['id'];
+      final customerName = decoded['customerName'];
+      final emailValue = decoded['customerEmail'];
+      final customerEmail = emailValue is String ? emailValue : '';
+      final type = decoded['type'];
+      final issuedAt = decoded['issuedAt'];
+
+      // Keep the same payload contract as Topf Secret's LicenseVerifier.kt.
+      if (decoded['version'] != 1 ||
+          decoded['product'] != 'topf_secret' ||
+          id is! String ||
+          !_isUuid(id) ||
+          customerName is! String ||
+          customerName.trim().isEmpty ||
+          type is! String ||
+          !{
+            'lifetime',
+            'monthly',
+            'quarterly',
+            'half_yearly',
+            'yearly',
+            'custom',
+          }.contains(type) ||
+          issuedAt is! int ||
+          issuedAt <= 0) {
+        return null;
       }
-      final expiry = x['expiresAt'], duration = x['durationValue'], unit = x['durationUnit'];
-      if (expiry is! int || expiry <= issuedAt || expiry <= now.millisecondsSinceEpoch ~/ 1000 ||
-          duration is! int || duration < 1 || duration > 3650 ||
-          unit is! String || !{'days','months','years'}.contains(unit)) return null;
-      return AstraliumLicense(id:id, customerName:name, customerEmail:email, type:type,
-        issuedAt:issued, expiresAt:DateTime.fromMillisecondsSinceEpoch(expiry * 1000, isUtc:true),
-        durationValue:duration, durationUnit:unit);
-    } on Object { return null; }
+
+      final issued = DateTime.fromMillisecondsSinceEpoch(
+        issuedAt * 1000,
+        isUtc: true,
+      );
+
+      if (type == 'lifetime') {
+        if (decoded.containsKey('expiresAt')) return null;
+        return AstraliumLicense(
+          id: id,
+          customerName: customerName,
+          customerEmail: customerEmail,
+          type: type,
+          issuedAt: issued,
+        );
+      }
+
+      final expiresAt = decoded['expiresAt'];
+      final durationValue = decoded['durationValue'];
+      final durationUnit = decoded['durationUnit'];
+      final nowSeconds = _clock().toUtc().millisecondsSinceEpoch ~/ 1000;
+
+      if (expiresAt is! int ||
+          expiresAt <= issuedAt ||
+          expiresAt <= nowSeconds ||
+          durationValue is! int ||
+          durationValue < 1 ||
+          durationValue > 3650 ||
+          durationUnit is! String ||
+          !{'days', 'months', 'years'}.contains(durationUnit)) {
+        return null;
+      }
+
+      return AstraliumLicense(
+        id: id,
+        customerName: customerName,
+        customerEmail: customerEmail,
+        type: type,
+        issuedAt: issued,
+        expiresAt: DateTime.fromMillisecondsSinceEpoch(
+          expiresAt * 1000,
+          isUtc: true,
+        ),
+        durationValue: durationValue,
+        durationUnit: durationUnit,
+      );
+    } on Object {
+      return null;
+    }
   }
 
-  static Uint8List _b64(String s) {
-    if (s.isEmpty || !RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(s)) throw const FormatException();
-    return Uint8List.fromList(base64Url.decode(base64Url.normalize(s)));
+  static Uint8List _base64UrlDecode(String value) {
+    if (value.isEmpty ||
+        !RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(value)) {
+      throw const FormatException('Invalid Base64URL value');
+    }
+    return Uint8List.fromList(
+      base64Url.decode(base64Url.normalize(value)),
+    );
   }
-  static bool _uuid(String s) => RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$').hasMatch(s);
 
-  static bool _verify(Uint8List spki, Uint8List message, Uint8List der) {
-    if (spki.length < 65) return false;
-    final pointBytes = spki.sublist(spki.length - 65);
-    if (pointBytes.first != 4) return false;
+  static bool _isUuid(String value) => RegExp(
+        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+      ).hasMatch(value);
+
+  static bool _verifySignature(
+    Uint8List subjectPublicKeyInfo,
+    Uint8List message,
+    Uint8List derSignature,
+  ) {
+    if (subjectPublicKeyInfo.length != _p256SpkiPrefix.length + 65) {
+      return false;
+    }
+    for (var i = 0; i < _p256SpkiPrefix.length; i++) {
+      if (subjectPublicKeyInfo[i] != _p256SpkiPrefix[i]) return false;
+    }
+
+    final pointBytes = subjectPublicKeyInfo.sublist(_p256SpkiPrefix.length);
+    if (pointBytes.first != 0x04) return false;
+
     final domain = ECDomainParameters('prime256v1');
     final point = domain.curve.decodePoint(pointBytes);
     if (point == null) return false;
+
+    final signature = _decodeDerSignature(derSignature, domain.n);
     final signer = ECDSASigner(SHA256Digest(), HMac(SHA256Digest(), 64))
-      ..init(false, PublicKeyParameter<ECPublicKey>(ECPublicKey(point, domain)));
-    return signer.verifySignature(message, _derSignature(der));
+      ..init(
+        false,
+        PublicKeyParameter<ECPublicKey>(ECPublicKey(point, domain)),
+      );
+    return signer.verifySignature(message, signature);
   }
 
-  static ECSignature _derSignature(Uint8List b) {
-    var i = 0;
-    int len() {
-      final n = b[i++];
-      if (n < 128) return n;
-      final count = n & 127;
-      if (count == 0 || count > 2 || i + count > b.length) throw const FormatException();
-      var v = 0;
-      for (var j=0;j<count;j++) { v=(v<<8)|b[i++]; }
-      return v;
+  /// Strict DER decoding for the ASN.1 ECDSA signature emitted by Java
+  /// SHA256withECDSA. P-256 signatures fit in the short-form DER lengths.
+  static ECSignature _decodeDerSignature(Uint8List bytes, BigInt order) {
+    var offset = 0;
+
+    if (bytes.length < 8 || bytes[offset++] != 0x30) {
+      throw const FormatException('Invalid ECDSA sequence');
     }
-    if (b.isEmpty || b[i++] != 0x30) throw const FormatException();
-    final seq = len();
-    if (seq != b.length-i || b[i++] != 2) throw const FormatException();
-    final rl = len();
-    if (rl == 0 || i+rl > b.length) throw const FormatException();
-    final r = _integer(b.sublist(i,i+rl)); i+=rl;
-    if (i >= b.length || b[i++] != 2) throw const FormatException();
-    final sl = len();
-    if (sl == 0 || i+sl != b.length) throw const FormatException();
-    return ECSignature(r,_integer(b.sublist(i,i+sl)));
-  }
-  static BigInt _integer(Uint8List b) {
-    if (b.isEmpty || (b.first & 128) != 0) throw const FormatException();
-    var i=0;
-    while (i < b.length-1 && b[i]==0 && (b[i+1]&128)==0) { i++; }
-    return BigInt.parse(b.sublist(i).map((x)=>x.toRadixString(16).padLeft(2,'0')).join(),radix:16);
+
+    final sequenceLength = bytes[offset++];
+    if (sequenceLength >= 0x80 ||
+        sequenceLength != bytes.length - offset) {
+      throw const FormatException('Invalid ECDSA sequence length');
+    }
+
+    BigInt readInteger() {
+      if (offset + 2 > bytes.length || bytes[offset++] != 0x02) {
+        throw const FormatException('Invalid ECDSA integer');
+      }
+      final length = bytes[offset++];
+      if (length == 0 || length > 33 || offset + length > bytes.length) {
+        throw const FormatException('Invalid ECDSA integer length');
+      }
+
+      final encoded = bytes.sublist(offset, offset + length);
+      offset += length;
+
+      if ((encoded.first & 0x80) != 0 ||
+          (encoded.length > 1 &&
+              encoded.first == 0 &&
+              (encoded[1] & 0x80) == 0)) {
+        throw const FormatException('Non-canonical ECDSA integer');
+      }
+
+      final valueBytes =
+          encoded.length > 1 && encoded.first == 0
+              ? encoded.sublist(1)
+              : encoded;
+      final value = BigInt.parse(
+        valueBytes
+            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+            .join(),
+        radix: 16,
+      );
+      if (value <= BigInt.zero || value >= order) {
+        throw const FormatException('ECDSA integer out of range');
+      }
+      return value;
+    }
+
+    final r = readInteger();
+    final s = readInteger();
+    if (offset != bytes.length) {
+      throw const FormatException('Trailing ECDSA signature data');
+    }
+    return ECSignature(r, s);
   }
 }

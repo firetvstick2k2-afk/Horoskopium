@@ -63,7 +63,6 @@ class TestSigningKey {
       'product': 'topf_secret',
       'id': '123e4567-e89b-42d3-a456-426614174000',
       'customerName': 'TSL1 Test Customer',
-      'customerEmail': 'tsl1-test@example.invalid',
       'type': type,
       'issuedAt': issuedSeconds,
       if (expiresAt != null) ...{
