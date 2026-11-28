@@ -63,9 +63,10 @@ class AstraliumApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.runtime});
+  const HomeScreen({super.key, required this.runtime, required this.licenseService});
 
   final EphemerisRuntime runtime;
+  final Tsl1LicenseService licenseService;
 
   @override
   Widget build(BuildContext context) {

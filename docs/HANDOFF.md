@@ -13,6 +13,7 @@
 - Derselbe TSL1-Token soll beide Apps aktivieren. Der bestehende signierte Produkt-Claim `topf_secret` bleibt daher als gemeinsamer Lizenz-Namespace erhalten; der Generator wird nicht verändert.
 - Neues plattformunabhängiges Offline-Prüfmodul: `lib/infrastructure/licensing/tsl1_license_verifier.dart`. Es prüft Tokenstruktur, ECDSA-P-256/SHA-256-Signatur, Version, Produkt-Claim, Lizenztyp, UUID, Ausstellungszeit, Kundenname sowie Ablauf-/Dauerfelder.
 - PointyCastle wird für die ECDSA-Prüfung verwendet. Negativtests für fehlerhafte Tokenformate und ungültige Signaturen wurden ergänzt.
+- CI #109 zeigte einen Wiring-Fehler: `HomeScreen` reichte den Lizenzdienst beim Öffnen der Einstellungen nicht weiter. Die Übergabe wurde korrigiert; der Fehler trat identisch in Android- und iOS-Analyse auf.
 - Lizenzdienst ergänzt: `lib/services/tsl1_license_service.dart`. TSL1-Token werden über `flutter_secure_storage` verschlüsselt im plattformspezifischen sicheren Speicher abgelegt (Android Keystore-basierte Verschlüsselung / iOS Keychain).
 - Beim App-Start wird der gespeicherte Token erneut offline verifiziert. Status: nicht aktiviert, aktiv, ungültig/abgelaufen oder Speicherfehler.
 - Aktivierungsseite ergänzt: `lib/screens/license_screen.dart`; erreichbar über Einstellungen. Aktivieren speichert nur nach erfolgreicher Signatur- und Ablaufprüfung. Deaktivieren entfernt den lokalen Token.
