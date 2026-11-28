@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../application/use_cases/calculate_profile_radix.dart';
+import '../infrastructure/ephemeris/ephemeris_runtime.dart';
+import '../infrastructure/location/iana_birth_chart_input_resolver.dart';
+
 import '../domain/location/geocoded_birth_place.dart';
 import '../models/birth_profile.dart';
 import '../services/profile_store.dart';
+import 'radix_screen.dart';
 import '../infrastructure/location/open_meteo_birth_place_geocoder.dart';
 
 class ProfilesScreen extends StatefulWidget {
-  const ProfilesScreen({super.key});
+  const ProfilesScreen({super.key, required this.runtime});
+
+  final EphemerisRuntime runtime;
 
   @override
   State<ProfilesScreen> createState() => _ProfilesScreenState();
@@ -16,6 +23,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
   final _store = ProfileStore();
   List<BirthProfile> _profiles = [];
   bool _loading = true;
+  String? _calculatingProfileId;
 
   @override
   void initState() {
@@ -42,6 +50,38 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
     await _store.saveProfiles(updated);
     if (!mounted) return;
     setState(() => _profiles = updated);
+  }
+
+  Future<void> _calculateProfile(BirthProfile profile) async {
+    final engine = widget.runtime.activeEngine;
+    if (engine == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bitte zuerst in den Einstellungen eine Ephemeride herunterladen und aktivieren.'),
+        ),
+      );
+      return;
+    }
+    setState(() => _calculatingProfileId = profile.id);
+    try {
+      final result = await CalculateProfileRadix(
+        inputResolver: IanaBirthChartInputResolver(
+          geocoder: OpenMeteoBirthPlaceGeocoder(),
+        ),
+        engine: engine,
+      )(profile);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => RadixScreen(result: result)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Radix konnte nicht berechnet werden: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _calculatingProfileId = null);
+    }
   }
 
   Future<void> _deleteProfile(BirthProfile profile) async {
@@ -78,13 +118,20 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                           child: Icon(Icons.person_outline),
                         ),
                         title: Text(profile.name),
+                        onTap: _calculatingProfileId == profile.id ? null : () => _calculateProfile(profile),
                         subtitle: Text(
                           '${_date(profile.birthDate)}'
                           '${profile.birthTime == null ? '' : ' · ${profile.birthTime}'}'
                           '${profile.birthPlace == null ? '' : '\n${profile.birthPlace}'}',
                         ),
                         isThreeLine: profile.birthPlace != null,
-                        trailing: IconButton(
+                        trailing: _calculatingProfileId == profile.id
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : IconButton(
                           tooltip: 'Profil löschen',
                           onPressed: () => _deleteProfile(profile),
                           icon: const Icon(Icons.delete_outline),
