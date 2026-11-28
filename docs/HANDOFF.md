@@ -3,8 +3,8 @@
 **Stand:** 28.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Aktueller HEAD vor dieser Dokumentationsänderung:** `a193b313dbe7f62c8048037b65e43f11d8792e0c`
-**Aktueller Stand:** Geburtsortsuche mit Ergebnisauswahl und Speicherung von Koordinaten/IANA-Zeitzone ist in der Profilmaske integriert. Profile werden über Resolver und aktive Ephemeriden-Engine zur Radix-Berechnung geführt; Ergebnisansicht zeigt berechnete Positionen, Winkel und Häuser. CI für den aktuellen Integrationsstand ist noch ausstehend.
+**Bestätigter Integrations-HEAD:** `c10c29dd4884a128dd18bc8302dbcab277072845`
+**Aktueller Stand:** Geburtsortsuche mit Ergebnisauswahl und Speicherung von Koordinaten/IANA-Zeitzone ist in der Profilmaske integriert. Profile werden über Resolver und aktive Ephemeriden-Engine zur Radix-Berechnung geführt; Ergebnisansicht zeigt berechnete Positionen, Winkel und Häuser. CI #142 (Run `46168425527`) auf Commit `c10c29dd4884a128dd18bc8302dbcab277072845` vollständig erfolgreich: Android-Analyse, Tests und Debug-Build sowie iOS-Analyse, Tests und unsigned Build.
 
 ## Funktionsplanung
 
@@ -49,5 +49,5 @@
 3. Geburtsort-Geocoding, Ergebnisauswahl und Speicherung der Ortsmetadaten sind in der Profilmaske integriert.
 4. Profile nutzen bei Antippen den Resolver und die aktive Ephemeriden-Engine; Geburtszeit ist für die genaue Radix-Berechnung Pflicht. DST-Lücken/-Dopplungen werden abgewiesen.
 5. Radix-Ergebnisansicht zeigt reale Engine-Positionen, Aszendent/MC und Häuserspitzen. Die Radix-Zeichnung ist weiterhin ein Prototyp und noch nicht mit den Ergebnisdaten verbunden; Aspektberechnung/Visualisierung fehlt.
-6. CI für die Integrationsänderungen vollständig abwarten, Analyzer-/Testfehler beheben und Hand-off danach mit dem bestätigten Status aktualisieren.
+6. CI #142 ist vollständig grün (Android und iOS: Analyse, Tests und jeweilige Builds).
 7. Unabhängige Referenztests für Ephemeriden und Häusersysteme; anschließend APK-/Gerätetest.
