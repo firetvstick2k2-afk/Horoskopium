@@ -91,7 +91,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Profile',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProfilesScreen()),
+              MaterialPageRoute(builder: (_) => ProfilesScreen(runtime: runtime)),
             ),
             icon: const Icon(Icons.account_circle_outlined),
           ),
