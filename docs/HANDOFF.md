@@ -180,3 +180,13 @@ Astrologische Deutungen sind symbolische/traditionelle Interpretationen und kein
 - UI unterscheidet „Lokal gespeichert“ von „Aktiv für Berechnungen“. Der aktive Kernel kann nicht gelöscht oder ersetzt werden; ein anderer Kernel kann erst nach App-Neustart aktiviert werden. Runtime-seitige Schutzprüfungen bleiben maßgeblich, nicht die UI allein.
 - Runtime merkt sich den Pfad der geöffneten Datei und führt für den aktiven Kernel keine erneute Dateisystem-Recovery-Prüfung aus, die den offenen SPK-Handle gefährden könnte. Gleichzeitige Dateiaktionen und Aktivierung desselben Kernels werden gegeneinander gesperrt.
 - Widget-Test an die injizierbare App-Runtime angepasst. CI für diese Integration steht noch aus. Keine reale Geräteprüfung oder echte JPL-Download-/Positionsvalidierung behauptet.
+
+
+### Profil-zu-Radix-Anwendungsfluss (28.11.2026)
+
+- Neue Anwendungsgrenze `BirthChartInputResolver`: Ein gespeichertes ziviles Geburtsprofil muss vor der Ephemeridenberechnung in einen validierten `ChartCalculationInput` übersetzt werden. Die Auflösung umfasst verifizierte Ortskoordinaten, die historische IANA-Zeitzone und die Umrechnung der lokalen Geburtszeit in UTC.
+- Neue Use-Case-Orchestrierung `CalculateProfileRadix`: nimmt ein `BirthProfile`, ruft zuerst den Resolver auf und übergibt erst danach den validierten Input an `CalculateRadix` und die ausgewählte `EphemerisEngine`.
+- Absichtliche Genauigkeitsregel: Das Datum aus dem Profil ist ein lokales Kalenderdatum und darf nicht als UTC-Zeitpunkt oder in der aktuellen Gerätezeitzone interpretiert werden. Fehlende/mehrdeutige Geburtszeit darf nicht stillschweigend durch 12:00 Uhr ersetzt werden. Bis eine explizite reduzierte Genauigkeit modelliert ist, muss der Resolver solche Profile ablehnen.
+- Drei Use-Case-Tests prüfen Reihenfolge/Profilübergabe, Ablehnung ungültiger Berechnungsinputs vor dem Engine-Aufruf sowie Weitergabe von Orts-/Zeitzonenfehlern.
+- Noch kein produktiver Geocoding-/Zeitzonen-Resolver und keine UI-Verbindung: die neue Schnittstelle ist der sichere Anschluss für den nächsten Schritt. Keine echte Radix-Berechnung oder Gerätevalidierung behauptet.
+- Letzter bestätigter CI-Stand vor dieser Änderung: Run #103, Commit `02438753`, Android und iOS vollständig erfolgreich. CI für den neuen Profil-zu-Radix-Anwendungsfluss steht noch aus.
