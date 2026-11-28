@@ -3,8 +3,8 @@
 **Stand:** 28.11.2026  
 **Repository:** firetvstick2k2-afk/Horoskopium  
 **Arbeitsbranch:** development  
-**Aktueller HEAD vor dieser Dokumentationsänderung:** 8b135d96ab2d877a29388e793cf10eb6d2226061  
-**Aktueller Stand:** TSL1-Verifier-Korrektur ist in CI #116 erfolgreich; fachlicher Funktionskatalog wurde als Planungsdokument ergänzt.
+**Aktueller HEAD vor dieser Dokumentationsänderung:** `ca0b9705070d24a002d1370052d79a9de677f0e2`
+**Aktueller Stand:** Historische Geburtsort-/Zeitzonenauflösung ergänzt; CI #125 scheiterte an einem einzelnen Analyzer-Warning (unbenutzter Import), inzwischen behoben in `ca0b970...`; erneute CI-Prüfung folgt.
 
 ## Funktionsplanung
 
@@ -46,6 +46,8 @@
 
 1. Funktionskatalog gemeinsam priorisieren und fachliche offene Fragen klären.
 2. Reale Android-/iOS-Geräteprüfung der nativen sicheren Speicherung.
-3. Geocoding und historische IANA-Zeitzonenauflösung.
-4. Unabhängige Referenztests für Ephemeriden und Häusersysteme.
-5. APK-/Gerätetest.
+3. Geburtsort-Geocoding und historische IANA-Zeitzonenauflösung sind als Adapter implementiert; Ortsmehrdeutigkeit und DST-Lücken/-Dopplungen werden bewusst abgewiesen.
+4. CI nach Korrektur des Analyzer-Warnings erneut vollständig ausführen und eventuelle Testfehler beheben.
+5. Geocoding-Ergebnisse künftig auswählbar machen (derzeit muss die Ortsanfrage eindeutig sein); danach Resolver in Profile-/Radix-Ablauf integrieren.
+6. Unabhängige Referenztests für Ephemeriden und Häusersysteme.
+7. APK-/Gerätetest.
