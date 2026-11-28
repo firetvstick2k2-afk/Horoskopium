@@ -111,22 +111,56 @@ class _RadixPainter extends CustomPainter {
 
     // Planet glyphs are placed at their actual ecliptic longitudes.
     // Nearby objects use alternating radial lanes to reduce label collisions.
-    final bodies=[...data.positions]..sort((x,y)=>x.longitudeDegrees.compareTo(y.longitudeDegrees));
-    var previous=-1000.0;
-    var lane=0;
-    for(final body in bodies) {
-      if((body.longitudeDegrees-previous).abs()<9) {
-        lane=(lane+1)%3;
-      } else {
-        lane=0;
+    final sortedBodies = [...data.positions]
+      ..sort((first, second) =>
+          first.longitudeDegrees.compareTo(second.longitudeDegrees));
+    var startIndex = 0;
+    var largestGap = -1.0;
+    for (var index = 0; index < sortedBodies.length; index++) {
+      final current = sortedBodies[index].longitudeDegrees;
+      final next = sortedBodies[(index + 1) % sortedBodies.length]
+          .longitudeDegrees;
+      final gap = (next - current + 360) % 360;
+      if (gap > largestGap) {
+        largestGap = gap;
+        startIndex = (index + 1) % sortedBodies.length;
       }
-      previous=body.longitudeDegrees;
-      final glyph=_glyphs[body.bodyId]??'?';
-      final symbol=glyph+(body.isRetrograde?'℞':'');
-      final angle=a(body.longitudeDegrees);
-      _text(canvas,symbol,p(r*(.605-lane*.065),angle),const Color(0xFFF0D9A8),r*.09);
-      _text(canvas,(body.longitudeDegrees%30).toStringAsFixed(0)+'°',
-        p(r*.685,angle),const Color(0xFFD5CCBD),r*.037);
+    }
+    final bodies = [
+      for (var offset = 0; offset < sortedBodies.length; offset++)
+        sortedBodies[(startIndex + offset) % sortedBodies.length],
+    ];
+
+    var previousUnwrappedLongitude = double.negativeInfinity;
+    var lane = 0;
+    for (final body in bodies) {
+      var unwrappedLongitude = body.longitudeDegrees;
+      if (unwrappedLongitude < previousUnwrappedLongitude) {
+        unwrappedLongitude += 360;
+      }
+      if ((unwrappedLongitude - previousUnwrappedLongitude).abs() < 9) {
+        lane = (lane + 1) % 3;
+      } else {
+        lane = 0;
+      }
+      previousUnwrappedLongitude = unwrappedLongitude;
+      final glyph = _glyphs[body.bodyId] ?? '?';
+      final symbol = glyph + (body.isRetrograde ? '℞' : '');
+      final angle = a(body.longitudeDegrees);
+      _text(
+        canvas,
+        symbol,
+        p(r * (.605 - lane * .065), angle),
+        const Color(0xFFF0D9A8),
+        r * .09,
+      );
+      _text(
+        canvas,
+        (body.longitudeDegrees % 30).toStringAsFixed(0) + '°',
+        p(r * .685, angle),
+        const Color(0xFFD5CCBD),
+        r * .037,
+      );
     }
   }
 
