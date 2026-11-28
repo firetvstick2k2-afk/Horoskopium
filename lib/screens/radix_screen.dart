@@ -88,6 +88,26 @@ class RadixScreen extends StatelessWidget {
                           value: position.longitudeDegrees.toStringAsFixed(2) + '°' +
                               (position.isRetrograde ? ' ℞' : ''),
                         ),
+                      const Divider(color: Color(0xFF526078), height: 22),
+                      const Text(
+                        'Erkannte Hauptaspekte',
+                        style: TextStyle(
+                          color: Color(0xFFE5C98F),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (result!.aspects.isEmpty)
+                        const Text(
+                          'Innerhalb der eingestellten Orben wurden keine Hauptaspekte gefunden.',
+                          style: TextStyle(color: Color(0xFFD5CCBD), height: 1.35),
+                        ),
+                      for (final aspect in result!.aspects)
+                        _ValueLine(
+                          label: aspect.firstBodyId + ' – ' + aspect.secondBodyId +
+                              ' · ' + aspect.aspect.displayName,
+                          value: 'Orb ' + aspect.orbDegrees.toStringAsFixed(2) + '°',
+                        ),
                       if (result!.houseCuspsDegrees.isNotEmpty) ...[
                         const Divider(color: Color(0xFF526078), height: 22),
                         Text(
@@ -125,7 +145,7 @@ class RadixScreen extends StatelessWidget {
                     _LegendLine(symbol: '♈ – ♓', text: 'Die zwölf Tierkreiszeichen liegen außen im Ring.'),
                     _LegendLine(symbol: '1 – 12', text: 'Die Zahlen markieren die zwölf astrologischen Häuser.'),
                     _LegendLine(symbol: '☉ ☽ ♀', text: 'Die Symbole zeigen die berechneten Planetenpositionen im Tierkreis.'),
-                    _LegendLine(symbol: '—', text: 'Aspektlinien folgen mit der geprüften Aspektberechnung.'),
+                    _LegendLine(symbol: '—', text: 'Die Linien verbinden Himmelskörper mit einem berechneten Hauptaspekt.'),
                   ],
                 ),
               ),
@@ -133,7 +153,7 @@ class RadixScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               calculated
-                  ? 'Die Radix-Grafik und Positionswerte stammen aus der aktiven Ephemeriden-Engine. Aspektlinien werden ergänzt, sobald die Aspektberechnung fachlich und technisch angebunden ist.'
+                  ? 'Positionen und Winkel stammen aus der aktiven Ephemeriden-Engine. Die Hauptaspekte werden separat in der Anwendung aus den berechneten Längenpositionen ermittelt. Die angezeigten Orben sind die aktuellen Anwendungsvorgaben.'
                   : 'Dies ist zunächst ein Gestaltungs-Prototyp. Es werden bewusst noch keine erfundenen Planetenpositionen oder Aspekte angezeigt. Die echten Positionen kommen erst aus der geprüften Berechnungs-Engine.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Color(0xFFB8B0A2), height: 1.45, fontSize: 12),
