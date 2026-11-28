@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:horoskopium/application/ports/ephemeris_engine.dart';
 import 'package:horoskopium/application/use_cases/calculate_radix.dart';
+import 'package:horoskopium/domain/astrology/aspect_calculator.dart';
 import 'package:horoskopium/domain/astrology/chart_calculation_input.dart';
 import 'package:horoskopium/domain/astrology/chart_calculation_result.dart';
 import 'package:horoskopium/domain/astrology/celestial_position.dart';
-import 'package:horoskopium/domain/astrology/aspect_calculator.dart';
 
 void main() {
   test('calculates aspects at the application boundary without changing engine output', () async {
@@ -22,10 +22,10 @@ void main() {
     expect(result.engineId, 'test-engine');
     expect(result.engineVersion, '1.0');
     expect(result.positions, hasLength(3));
-    expect(result.aspects, hasLength(2));
+    expect(result.aspects, hasLength(3));
     expect(
       result.aspects.map((aspect) => aspect.aspect),
-      [MajorAspect.conjunction, MajorAspect.square],
+      [MajorAspect.conjunction, MajorAspect.square, MajorAspect.square],
     );
     expect(result.aspects.first.firstBodyId, 'sun');
     expect(result.aspects.first.secondBodyId, 'moon');
