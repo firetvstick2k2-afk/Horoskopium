@@ -38,7 +38,7 @@ class RadixScreen extends StatelessWidget {
                 minScale: .8,
                 maxScale: 3.5,
                 boundaryMargin: const EdgeInsets.all(90),
-                child: const RadixPreview(size: 340),
+                child: RadixPreview(size: 340, result: result),
               ),
             ),
             if (calculated) ...[
@@ -124,8 +124,8 @@ class RadixScreen extends StatelessWidget {
                     SizedBox(height: 10),
                     _LegendLine(symbol: '♈ – ♓', text: 'Die zwölf Tierkreiszeichen liegen außen im Ring.'),
                     _LegendLine(symbol: '1 – 12', text: 'Die Zahlen markieren die zwölf astrologischen Häuser.'),
-                    _LegendLine(symbol: '☉ ☽ ♀', text: 'Die Tabelle zeigt die berechneten Planetenpositionen.'),
-                    _LegendLine(symbol: '—', text: 'Aspektlinien werden ergänzt, sobald die Aspektberechnung angebunden ist.'),
+                    _LegendLine(symbol: '☉ ☽ ♀', text: 'Die Symbole zeigen die berechneten Planetenpositionen im Tierkreis.'),
+                    _LegendLine(symbol: '—', text: 'Aspektlinien folgen mit der geprüften Aspektberechnung.'),
                   ],
                 ),
               ),
@@ -133,7 +133,7 @@ class RadixScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               calculated
-                  ? 'Die Positionswerte stammen aus der aktiven Ephemeriden-Engine. Die Radix-Grafik wird im nächsten Ausbauschritt mit diesen Werten verbunden.'
+                  ? 'Die Radix-Grafik und Positionswerte stammen aus der aktiven Ephemeriden-Engine. Aspektlinien werden ergänzt, sobald die Aspektberechnung fachlich und technisch angebunden ist.'
                   : 'Dies ist zunächst ein Gestaltungs-Prototyp. Es werden bewusst noch keine erfundenen Planetenpositionen oder Aspekte angezeigt. Die echten Positionen kommen erst aus der geprüften Berechnungs-Engine.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Color(0xFFB8B0A2), height: 1.45, fontSize: 12),
