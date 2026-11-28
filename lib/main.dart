@@ -57,7 +57,7 @@ class AstraliumApp extends StatelessWidget {
           ),
         ),
       ),
-      home: HomeScreen(runtime: runtime),
+      home: HomeScreen(runtime: runtime, licenseService: licenseService),
     );
   }
 }
