@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../infrastructure/ephemeris/ephemeris_runtime.dart';
 import '../services/ephemeris_download_service.dart';
+import '../services/tsl1_license_service.dart';
+import 'license_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.runtime});
+  const SettingsScreen({super.key, required this.runtime, required this.licenseService});
 
   final EphemerisRuntime runtime;
+  final Tsl1LicenseService licenseService;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -132,6 +135,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(widget.runtime.persistenceWarning!,
                 style: const TextStyle(color: Color(0xFF9A7135))),
           ],
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.verified_user_outlined, color: Color(0xFF9A7135)),
+              title: const Text('ASTRALIUM-Lizenz', style: TextStyle(color: Color(0xFF17263D), fontWeight: FontWeight.w600)),
+              subtitle: const Text('Lizenzschlüssel eingeben und Aktivierung verwalten'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => LicenseScreen(service: widget.licenseService)),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           for (final kernel in EphemerisKernel.available)
             _kernelCard(kernel),

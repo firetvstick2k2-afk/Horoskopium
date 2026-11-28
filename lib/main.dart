@@ -6,19 +6,23 @@ import 'screens/profiles_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/radix_screen.dart';
 import 'widgets/radix_preview.dart';
+import 'services/tsl1_license_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final runtime = EphemerisRuntime(downloads: EphemerisDownloadService());
-  await runtime.restore();
-  runApp(AstraliumApp(runtime: runtime));
+  final licenseService = Tsl1LicenseService();
+  await Future.wait([runtime.restore(), licenseService.restore()]);
+  runApp(AstraliumApp(runtime: runtime, licenseService: licenseService));
 }
 
 class AstraliumApp extends StatelessWidget {
-  AstraliumApp({super.key, EphemerisRuntime? runtime})
-      : runtime = runtime ?? EphemerisRuntime(downloads: EphemerisDownloadService());
+  AstraliumApp({super.key, EphemerisRuntime? runtime, Tsl1LicenseService? licenseService})
+      : runtime = runtime ?? EphemerisRuntime(downloads: EphemerisDownloadService()),
+        licenseService = licenseService ?? Tsl1LicenseService();
 
   final EphemerisRuntime runtime;
+  final Tsl1LicenseService licenseService;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +83,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Einstellungen',
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => SettingsScreen(runtime: runtime)),
+              MaterialPageRoute(builder: (_) => SettingsScreen(runtime: runtime, licenseService: licenseService)),
             ),
             icon: const Icon(Icons.settings_outlined),
           ),
