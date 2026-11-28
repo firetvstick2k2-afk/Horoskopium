@@ -51,7 +51,7 @@ class Tsl1LicenseVerifier {
   final String _key;
   final DateTime Function() _clock;
 
-  AstraliumLicense? verify(String token) {
+  AstraliumLicense? verify(String token, {bool allowExpired = false}) {
     try {
       final parts = token.trim().split('.');
       if (parts.length != 3 || parts[0] != 'TSL1') return null;
@@ -118,7 +118,7 @@ class Tsl1LicenseVerifier {
 
       if (expiresAt is! int ||
           expiresAt <= issuedAt ||
-          expiresAt <= nowSeconds ||
+          (!allowExpired && expiresAt <= nowSeconds) ||
           durationValue is! int ||
           durationValue < 1 ||
           durationValue > 3650 ||

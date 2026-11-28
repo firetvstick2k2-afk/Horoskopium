@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -44,6 +46,7 @@ class Tsl1LicenseService extends ChangeNotifier {
   AstraliumLicense? _license;
   String? _storageError;
   bool _restored = false;
+  Timer? _expiryTimer;
 
   LicenseStatus get status => _status;
   AstraliumLicense? get license => _license;
@@ -56,9 +59,13 @@ class Tsl1LicenseService extends ChangeNotifier {
       if (token == null || token.isEmpty) {
         _set(LicenseStatus.notActivated);
       } else {
-        final license = _verifier.verify(token);
+        final license = _verifier.verify(token, allowExpired: true);
         _license = license;
-        _set(license == null ? LicenseStatus.invalid : LicenseStatus.active);
+        if (license == null) {
+          _set(LicenseStatus.invalid);
+        } else {
+          _refreshExpiryState();
+        }
       }
     } catch (error) {
       _storageError = error.toString();
@@ -80,7 +87,7 @@ class Tsl1LicenseService extends ChangeNotifier {
       await _store.write(token.trim());
       _license = license;
       _storageError = null;
-      _set(LicenseStatus.active);
+      _refreshExpiryState();
       return true;
     } catch (error) {
       _license = null;
@@ -93,6 +100,7 @@ class Tsl1LicenseService extends ChangeNotifier {
   Future<void> deactivate() async {
     try {
       await _store.delete();
+      _expiryTimer?.cancel();
       _license = null;
       _storageError = null;
       _set(LicenseStatus.notActivated);
@@ -100,6 +108,36 @@ class Tsl1LicenseService extends ChangeNotifier {
       _storageError = error.toString();
       _set(LicenseStatus.storageError);
     }
+  }
+
+  void _refreshExpiryState() {
+    _expiryTimer?.cancel();
+    final expiresAt = _license?.expiresAt;
+    if (expiresAt == null) {
+      _set(LicenseStatus.active);
+      return;
+    }
+    final remaining = expiresAt.difference(DateTime.now().toUtc());
+    if (remaining <= Duration.zero) {
+      _set(LicenseStatus.invalid);
+      return;
+    }
+    _set(LicenseStatus.active);
+    _expiryTimer = Timer(remaining, () {
+      final expiry = _license?.expiresAt;
+      if (expiry == null) return;
+      if (!expiry.isAfter(DateTime.now().toUtc())) {
+        _set(LicenseStatus.invalid);
+      } else {
+        _refreshExpiryState();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _expiryTimer?.cancel();
+    super.dispose();
   }
 
   void _set(LicenseStatus value) {

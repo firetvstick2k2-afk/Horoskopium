@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/tsl1_license_service.dart';
@@ -14,9 +16,20 @@ class LicenseScreen extends StatefulWidget {
 class _LicenseScreenState extends State<LicenseScreen> {
   final _controller = TextEditingController();
   bool _busy = false;
+  Timer? _countdownTimer;
+  DateTime _now = DateTime.now().toUtc();
+
+  @override
+  void initState() {
+    super.initState();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now().toUtc());
+    });
+  }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -40,12 +53,30 @@ class _LicenseScreenState extends State<LicenseScreen> {
     if (mounted) setState(() => _busy = false);
   }
 
-  String _statusText(LicenseStatus status) => switch (status) {
+  String _statusText(LicenseStatus status, AstraliumLicense? license) {
+    if (status == LicenseStatus.invalid && license?.expiresAt != null) {
+      return 'Lizenz abgelaufen';
+    }
+    return switch (status) {
         LicenseStatus.notActivated => 'Keine Lizenz aktiviert',
         LicenseStatus.active => 'Lizenz gültig und aktiviert',
         LicenseStatus.invalid => 'Lizenz ungültig oder abgelaufen',
         LicenseStatus.storageError => 'Sicherer Speicher nicht verfügbar',
       };
+  }
+
+  String _remainingText(DateTime expiry) {
+    final remaining = expiry.difference(_now);
+    if (remaining <= Duration.zero) return 'Lizenz abgelaufen';
+    final days = remaining.inDays;
+    final hours = remaining.inHours.remainder(24);
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+    if (days > 0) return 'Noch ${days} ${days == 1 ? 'Tag' : 'Tage'}, ${hours} Std., ${minutes} Min.';
+    if (remaining.inHours > 0) return 'Noch ${remaining.inHours} Std., ${minutes} Min.';
+    if (remaining.inMinutes > 0) return 'Noch ${minutes} Min., ${seconds} Sek.';
+    return 'Noch ${seconds} Sekunden';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +87,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
         builder: (context, _) {
           final license = widget.service.license;
           final active = widget.service.status == LicenseStatus.active;
+          final expired = widget.service.status == LicenseStatus.invalid && license?.expiresAt != null;
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -63,7 +95,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                   size: 54, color: Color(0xFF9A7135)),
               const SizedBox(height: 14),
               Text(
-                _statusText(widget.service.status),
+                _statusText(widget.service.status, license),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFF17263D),
@@ -71,7 +103,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if (active && license != null) ...[
+              if (license != null && (active || expired)) ...[
                 const SizedBox(height: 18),
                 Card(
                   child: Padding(
@@ -83,9 +115,19 @@ class _LicenseScreenState extends State<LicenseScreen> {
                         const SizedBox(height: 6),
                         Text('Kunde: ${license.customerName}'),
                         const SizedBox(height: 6),
-                        Text(license.isLifetime
-                            ? 'Laufzeit: Unbegrenzt'
-                            : 'Gültig bis: ${license.expiresAt!.toLocal()}'),
+                        if (license.isLifetime) ...[
+                          const Text('Laufzeit: Unbegrenzt gültig'),
+                        ] else ...[
+                          Text('Gültig bis: ${license.expiresAt!.toLocal()}'),
+                          const SizedBox(height: 8),
+                          Text(
+                            expired ? 'Abgelaufen' : _remainingText(license.expiresAt!),
+                            style: TextStyle(
+                              color: expired ? Colors.red : Colors.green.shade800,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -129,7 +171,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                   label: Text(_busy ? 'Wird geprüft …' : 'Lizenz prüfen und aktivieren'),
                 ),
               ],
-              if (widget.service.status == LicenseStatus.invalid) ...[
+              if (widget.service.status == LicenseStatus.invalid && !expired) ...[
                 const SizedBox(height: 12),
                 const Text(
                   'Der Schlüssel konnte nicht bestätigt werden. Prüfe, ob er vollständig kopiert wurde und noch gültig ist.',

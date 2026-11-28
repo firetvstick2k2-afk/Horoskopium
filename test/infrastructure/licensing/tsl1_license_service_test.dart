@@ -188,6 +188,26 @@ void main() {
       expect(verifier.verify(token), isNull);
     });
 
+    test('restores an expired signed token as expired and retains its expiry', () async {
+      final key = TestSigningKey.generate();
+      final store = MemoryTokenStore();
+      final verifier = Tsl1LicenseVerifier(
+        publicKeyBase64Url: key.publicKeyBase64Url,
+        clock: () => DateTime.utc(2026, 11, 28, 12),
+      );
+      store.value = key.signToken(
+        type: 'monthly',
+        issuedAt: DateTime.utc(2026, 10, 28, 12),
+        expiresAt: DateTime.utc(2026, 11, 28, 11),
+      );
+      final service = Tsl1LicenseService(store: store, verifier: verifier);
+      await service.restore();
+      expect(service.status, LicenseStatus.invalid);
+      expect(service.license, isNotNull);
+      expect(service.license!.expiresAt, DateTime.utc(2026, 11, 28, 11));
+      service.dispose();
+    });
+
     test('restores an empty store as not activated', () async {
       final store = MemoryTokenStore();
       final service = Tsl1LicenseService(store: store);
