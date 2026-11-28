@@ -4,7 +4,6 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../application/ports/birth_chart_input_resolver.dart';
 import '../../application/ports/birth_place_geocoder.dart';
 import '../../domain/astrology/chart_calculation_input.dart';
-import '../../domain/location/geocoded_birth_place.dart';
 import '../../models/birth_profile.dart';
 
 /// Resolves a civil birth record to UTC using the place's historical IANA rules.
