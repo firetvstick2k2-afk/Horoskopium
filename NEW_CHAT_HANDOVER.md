@@ -3,7 +3,7 @@
 **Stand:** 28.11.2026  
 **Repository:** https://github.com/firetvstick2k2-afk/Horoskopium  
 **Branch:** `development`  
-**Aktueller HEAD vor diesem Handover-Update:** `3765c52188320ff532837625905312ba8eff9136`  
+**Bestätigter Integrations-HEAD:** `c10c29dd4884a128dd18bc8302dbcab277072845` (Dokumentations-Commits folgen auf `development`).  
 **Main:** unverändert lassen.
 
 ## Aktueller Stand
@@ -12,7 +12,7 @@
 - Geburtsortsuche mit auswählbaren Treffern speichert Koordinaten, Land und IANA-Zeitzone im Geburtsprofil.
 - Antippen eines Profils führt über `CalculateProfileRadix`, historische IANA-Auflösung und aktive Ephemeriden-Engine zur Berechnung. Fehlende Geburtszeit wird in der Profilmaske verhindert; DST-Lücken/-Dopplungen werden nicht geraten.
 - Radix-Ansicht zeigt die berechneten Planetenpositionen, Aszendent, MC und Häuserspitzen. Die grafische Radix-Zeichnung ist noch nicht datenverbunden; Aspekte fehlen.
-- CI-Läufe #130–#137 sind noch nicht als erfolgreich bestätigt; mehrere Push-Runs wurden abgebrochen/queued. Aktuelle Run-Liste vor weiterer Arbeit prüfen.
+- CI #142 (Run `46168425527`) auf Commit `c10c29dd4884a128dd18bc8302dbcab277072845` vollständig erfolgreich: Android-Analyse, Tests und Debug-Build sowie iOS-Analyse, Tests und unsigned Build.
 - Neue Adapter: `BirthPlaceGeocoder`, Open-Meteo-Geocoder, `IanaBirthChartInputResolver`; IANA-Zeitzonen-Datenbank via `timezone`.
 - TSL1-Verifier-Importfehler aus CI #115 behoben.
 - `docs/FUNKTIONEN.md` neu angelegt: fachlicher Funktionskatalog und Ausbauplanung.
@@ -37,7 +37,5 @@
 ## Nächste Schritte
 1. Neue Funktionsliste gemeinsam prüfen und priorisieren.
 2. Native sichere Speicherung auf Android/iOS testen.
-3. CI nach Analyzer-Korrektur erneut prüfen und Fehler beheben.
-4. CI für die Profil-/Radix-Integration vollständig abwarten und eventuelle Analyzer-/Testfehler beheben.
-5. Grafische Radix mit berechneten Positionen verbinden und Aspektberechnung ergänzen.
-6. Ephemeriden- und Häusersystem-Referenztests vervollständigen.
+3. Grafische Radix mit berechneten Positionen verbinden und Aspektberechnung ergänzen.
+4. Ephemeriden- und Häusersystem-Referenztests vervollständigen.
